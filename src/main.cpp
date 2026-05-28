@@ -1,67 +1,50 @@
-#define GLFW_INCLUDE_NONE
+#include <iostream>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <imgui.h>
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_opengl3.h>
 
-#include <iostream>
-#include <stdexcept>
+#include "platform/input.hpp"
+#include "platform/window.hpp"
+#include "rendering/renderer.hpp"
+#include "simulation/simulation.hpp"
+#include "ui/menu.hpp"
+
+using namespace nbodysim::platform;
+using namespace nbodysim::rendering;
+using namespace nbodysim::simulation;
+using namespace nbodysim::ui;
 
 int main() {
-  constexpr int window_width = 1920;
-  constexpr int window_height = 1080;
+  constexpr auto window_width = 1920u;
+  constexpr auto window_height = 1080u;
 
-  if (!glfwInit()) {
-    throw std::runtime_error("Failed to initialize GLFW");
-  }
+  Window window {"N-Body Simulation", window_width, window_height};
+  Simulation simulation {2};
+  Renderer renderer {window_width, window_height, simulation.bodies()};
+  Menu menu {&renderer.body_radius, &renderer.body_color};
 
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  const auto process_input {[&](MouseInput mouse, KeyboardInput keyboard) {
+    if (keyboard.pressed_key == "m") {
+      menu.toggle();
+    }
+    if (mouse.scroll_direction == ScrollDirection::UP) {
+      renderer.adjust_frustum_size(-1.0f);
+    }
+    if (mouse.scroll_direction == ScrollDirection::DOWN) {
+      renderer.adjust_frustum_size(1.0f);
+    }
+  }};
 
-  GLFWwindow* window = glfwCreateWindow(1920, 1080, "N-Body Simulation", NULL, NULL);
-  if (!window) {
-    throw std::runtime_error("Failed to create window");
-  }
+  window.open([&](MouseInput mouse, KeyboardInput keyboard) {
+    process_input(mouse, keyboard);
 
-  glfwMakeContextCurrent(window);
-  glfwSwapInterval(1);
-  gladLoadGLLoader(reinterpret_cast<GLADloadproc>(&glfwGetProcAddress));
+    simulation.step();
 
-  std::cout << "Initialized GLFW with OpenGL" << std::endl;
-  std::cout << "  Version: " << glGetString(GL_VERSION) << std::endl;
-  std::cout << "  GPU: " << glGetString(GL_RENDERER) << std::endl;
+    renderer.clear();
+    renderer.render();
 
-  IMGUI_CHECKVERSION();
-  ImGui::CreateContext();
+    menu.display();
+  });
 
-  ImGuiIO& io {ImGui::GetIO()};
-  io.IniFilename = nullptr;
-
-  ImGui_ImplGlfw_InitForOpenGL(window, true);
-  ImGui_ImplOpenGL3_Init();
-
-  while (!glfwWindowShouldClose(window)) {
-    glViewport(0, 0, window_width, window_height);
-    glClearColor(0, 0, 0, 0);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-
-    ImGui::NewFrame();
-    ImGui::ShowDemoWindow();
-
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-    glfwSwapBuffers(window);
-    glfwPollEvents();
-  }
-
-  glfwDestroyWindow(window);
-  glfwTerminate();
   return 0;
 }
