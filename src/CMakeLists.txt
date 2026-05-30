@@ -13,6 +13,7 @@ target_sources(
     platform/input.cpp
     platform/window.cpp
     rendering/renderer.cpp
+    simulation/initialization.cpp
     simulation/simulation.cpp
     ui/menu.cpp
     main.cpp)

@@ -5,8 +5,8 @@
 
 #include <glm/vec4.hpp>
 
-#include "platform/types.hpp"
 #include "simulation/body.hpp"
+#include "simulation/initialization.hpp"
 
 namespace nbodysim::simulation {
 
@@ -14,8 +14,9 @@ class Simulation {
 public:
   /// Creates an N-body simulation.
   ///
-  /// @param N Number of bodies this simulation should contain.
-  Simulation(u32 N);
+  /// @param setup Initial setup of bodies for the simulation.
+  /// @note The number of initialized bodies depends on the setup.
+  Simulation(InitializationSetup setup);
 
   Simulation(const Simulation&) = delete;
   Simulation& operator=(const Simulation&) = delete;
