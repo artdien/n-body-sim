@@ -25,11 +25,11 @@ std::vector<Body> initialize_euler_three_body() {
   auto& body_2 {bodies[1]};
   auto& body_3 {bodies[2]};
 
-  body_1.position = {0.0f, 0.0f, 0.0f, 0.0f};
-  body_1.velocity = {0.0f, 0.0f, 0.0f, 0.0f};
+  body_1.position = {0.0f, 0.0f, 0.0f};
+  body_1.velocity = {0.0f, 0.0f, 0.0f};
 
-  body_2.position = {1.0f, 0.0f, 0.0f, 0.0f};
-  body_2.velocity = {0.0f, std::sqrt((5.0f * G) / (4 * glm::length(body_2.position))), 0.0f, 0.0f};
+  body_2.position = {1.0f, 0.0f, 0.0f};
+  body_2.velocity = {0.0f, std::sqrt((5.0f * G) / (4 * glm::length(body_2.position))), 0.0f};
 
   body_3.position = -body_2.position;
   body_3.velocity = -body_2.velocity;
@@ -46,14 +46,14 @@ std::vector<Body> initialize_lagrange_three_body() {
 
   const auto velocity {std::sqrt(G * INV_SQRT_THREE)};
 
-  body_1.position = {0.0f, 1.0f, 0.0f, 0.0f};
-  body_1.velocity = {-velocity, 0.0f, 0.0f, 0.0f};
+  body_1.position = {0.0f, 1.0f, 0.0f};
+  body_1.velocity = {-velocity, 0.0f, 0.0f};
 
-  body_2.position = {-0.5f * SQRT_THREE, -0.5f, 0.0f, 0.0f};
-  body_2.velocity = {0.5f * velocity, -0.5f * SQRT_THREE * velocity, 0.0f, 0.0f};
+  body_2.position = {-0.5f * SQRT_THREE, -0.5f, 0.0f};
+  body_2.velocity = {0.5f * velocity, -0.5f * SQRT_THREE * velocity, 0.0f};
 
-  body_3.position = {0.5f * SQRT_THREE, -0.5f, 0.0f, 0.0f};
-  body_3.velocity = {0.5f * velocity, 0.5f * SQRT_THREE * velocity, 0.0f, 0.0f};
+  body_3.position = {0.5f * SQRT_THREE, -0.5f, 0.0f};
+  body_3.velocity = {0.5f * velocity, 0.5f * SQRT_THREE * velocity, 0.0f};
 
   return bodies;
 }
@@ -94,8 +94,8 @@ std::vector<Body> initialize_plummer_n_body(u32 n) {
   }
 
   const auto [position_center, velocity_center] = [&]() {
-    auto position_center = glm::vec4 {0.0f};
-    auto velocity_center = glm::vec4 {0.0f};
+    auto position_center = glm::vec3 {0.0f};
+    auto velocity_center = glm::vec3 {0.0f};
 
     for (const auto& body : bodies) {
       position_center += body.position;

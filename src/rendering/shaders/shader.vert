@@ -3,9 +3,12 @@ R"(
 #version 460 core
 
 struct Body {
-    vec4 position;
-    vec4 velocity;
-    vec4 acceleration;
+    vec3 position;
+    float radius;
+    vec3 velocity;
+    float mass;
+    vec3 acceleration;
+    vec4 color;
 };
 
 layout(binding = 0, std430) readonly buffer SSBO {
