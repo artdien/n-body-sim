@@ -1,7 +1,6 @@
 #include "platform/window.hpp"
 
-#include <GLFW/glfw3.h>
-#include <iostream>
+#include <print>
 #include <stdexcept>
 
 #include <glad/glad.h>
@@ -38,7 +37,7 @@ void key_callback([[maybe_unused]] GLFWwindow* window, int key, int scan_code, i
 
 Window::Window(std::string title, u32 width, u32 height) : title_ {title}, width_ {width}, height_ {height} {
   glfwSetErrorCallback([](int error, const char* description) {
-    std::cerr << "Error initializing window: [" << error << "] " << description << '\n';
+    std::println(stderr, "Error initializing window: [{}] {}", error, description);
   });
 
   if (!glfwInit()) {
@@ -78,9 +77,9 @@ Window::Window(std::string title, u32 width, u32 height) : title_ {title}, width
   ImGui_ImplGlfw_InitForOpenGL(window_, true);
   ImGui_ImplOpenGL3_Init();
 
-  std::cout << "Initialized window with OpenGL context\n";
-  std::cout << "  OpenGL: " << glGetString(GL_VERSION) << '\n';
-  std::cout << "  GPU: " << glGetString(GL_RENDERER) << '\n';
+  std::println("Initialized window with OpenGL context");
+  std::println("  OpenGL: {}", reinterpret_cast<const char*>(glGetString(GL_VERSION)));
+  std::println("  GPU: {}", reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
 }
 
 Window::~Window() {

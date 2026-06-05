@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <array>
 #include <format>
-#include <iostream>
+#include <print>
 
 using namespace std::string_literals;
 
@@ -19,7 +19,7 @@ constexpr auto SUPPRESSED_MESSAGE_IDS = std::array {
 
 void debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, [[maybe_unused]] GLsizei length,
                     GLchar const* message, [[maybe_unused]] void const* user_param) {
-  if (std::ranges::find(SUPPRESSED_MESSAGE_IDS, id) != std::ranges::end(SUPPRESSED_MESSAGE_IDS)) {
+  if (std::ranges::contains(SUPPRESSED_MESSAGE_IDS, id)) {
     return;
   }
 
@@ -78,9 +78,7 @@ void debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, [[ma
     }
   }(severity);
 
-  std::cout << std::format("{} - [{}] [{}] [{}] - {}", severity_as_string, source_as_string, type_as_string, id,
-                           message)
-            << '\n';
+  std::println("{} - [{}] [{}] [{}] - {}", severity_as_string, source_as_string, type_as_string, id, message);
 }
 
 } // namespace nbodysim::platform
