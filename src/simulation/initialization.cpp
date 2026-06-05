@@ -27,12 +27,18 @@ std::vector<Body> initialize_euler_three_body() {
 
   body_1.position = {0.0f, 0.0f, 0.0f};
   body_1.velocity = {0.0f, 0.0f, 0.0f};
+  body_1.mass = 1.0f;
+  body_1.color = {1.0f, 1.0f, 1.0f, 1.0f};
 
   body_2.position = {1.0f, 0.0f, 0.0f};
   body_2.velocity = {0.0f, std::sqrt((5.0f * G) / (4 * glm::length(body_2.position))), 0.0f};
+  body_2.mass = 1.0f;
+  body_2.color = {1.0f, 1.0f, 1.0f, 1.0f};
 
   body_3.position = -body_2.position;
   body_3.velocity = -body_2.velocity;
+  body_3.mass = 1.0f;
+  body_3.color = {1.0f, 1.0f, 1.0f, 1.0f};
 
   return bodies;
 }
@@ -48,12 +54,18 @@ std::vector<Body> initialize_lagrange_three_body() {
 
   body_1.position = {0.0f, 1.0f, 0.0f};
   body_1.velocity = {-velocity, 0.0f, 0.0f};
+  body_1.mass = 1.0f;
+  body_1.color = {1.0f, 1.0f, 1.0f, 1.0f};
 
   body_2.position = {-0.5f * SQRT_THREE, -0.5f, 0.0f};
   body_2.velocity = {0.5f * velocity, -0.5f * SQRT_THREE * velocity, 0.0f};
+  body_2.mass = 1.0f;
+  body_2.color = {1.0f, 1.0f, 1.0f, 1.0f};
 
   body_3.position = {0.5f * SQRT_THREE, -0.5f, 0.0f};
   body_3.velocity = {0.5f * velocity, 0.5f * SQRT_THREE * velocity, 0.0f};
+  body_3.mass = 1.0f;
+  body_3.color = {1.0f, 1.0f, 1.0f, 1.0f};
 
   return bodies;
 }
@@ -76,6 +88,9 @@ std::vector<Body> initialize_plummer_n_body(u32 n) {
     body.position.x = r * std::sin(theta) * std::cos(phi);
     body.position.y = r * std::sin(theta) * std::sin(phi);
     body.position.z = r * std::cos(theta);
+
+    body.mass = 1.0f;
+    body.color = {1.0f, 1.0f, 1.0f, 1.0f};
 
     const auto v_max {std::sqrt((2.0f * G * M) / std::sqrt(r * r + a * a))};
     while (true) {

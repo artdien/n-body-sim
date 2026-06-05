@@ -1,5 +1,6 @@
 #pragma once
 
+#include <mutex>
 #include <span>
 
 #include <glad/glad.h>
@@ -16,21 +17,24 @@ public:
   ///
   /// @param width Width of the window.
   /// @param height Height of the window.
-  /// @param bodies Bodies which should be rendered.
-  Renderer(u32 width, u32 height, std::span<const simulation::Body> bodies);
+  Renderer(u32 width, u32 height);
   Renderer(const Renderer&) = delete;
   Renderer& operator=(const Renderer&) = delete;
-  Renderer(Renderer&&) = default;
-  Renderer& operator=(Renderer&&) = default;
+  Renderer(Renderer&&) = delete;
+  Renderer& operator=(Renderer&&) = delete;
   ~Renderer();
 
-  glm::vec3 body_color {1.0f, 1.0f, 1.0f};
+  /// Radius of each body.
+  /// Size is specified relative to view frustum size.
   f32 body_radius {1.0f};
+
+  /// Diameter of view frustum.
+  f32 frustum_size {10.0f};
 
   /// Renders the current state to the render target.
   ///
   /// This method must be called within an existing OpenGL context.
-  /// The current state consists of all bodies passed when constructing the renderer.
+  /// If the current state is empty (i.e. bodies have not been loaded yet) nothing will be rendered.
   auto render() -> void;
 
   /// Clears the current render target.
@@ -40,13 +44,10 @@ public:
   /// @param color The color with which the render target should be cleared.
   auto clear(glm::vec4 color = {0.0f, 0.0f, 0.0f, 0.0f}) -> void;
 
-  /// Adjusts the current size of the view frustum.
+  /// Loads the bodies to be rendered.
   ///
-  /// A positive value increases the frustum size, a negative decreases it.
-  ///
-  /// @param value The amount by which the frustum size should be adjusted.
-  /// @note The frustum size is floored at a minimum value of 0.01.
-  auto adjust_frustum_size(f32 value = 1.0f) -> void;
+  /// @param bodies Non-owning view of bodies to be rendered.
+  auto load_bodies(std::span<const simulation::Body> bodies) -> void;
 
 private:
   GLuint vertex_array_object_id_;
@@ -55,9 +56,9 @@ private:
 
   u32 width_;
   u32 height_;
-  f32 frustum_size_ {10.0f};
 
-  GLsync fence_ {nullptr};
+  GLsync fence_;
+  std::mutex mutex;
   std::span<const simulation::Body> bodies_;
   std::span<simulation::Body> bodies_mapped_;
 };

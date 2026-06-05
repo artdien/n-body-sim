@@ -15,9 +15,7 @@ constexpr auto eps {0.1f};
 
 } // namespace
 
-Simulation::Simulation(InitializationSetup setup) {
-  bodies_ = initialize_bodies(setup);
-}
+Simulation::Simulation(const std::vector<Body>& bodies) : bodies_ {bodies} {}
 
 auto Simulation::step() -> void {
   for (auto& body : bodies_) {
@@ -42,6 +40,11 @@ auto Simulation::step() -> void {
   for (auto& body : bodies_) {
     body.velocity += 0.5f * body.acceleration * dt;
   }
+}
+
+auto Simulation::initialize_setup(InitializationSetup setup) -> void {
+  bodies_ = initialize_bodies(setup);
+  bodies_.shrink_to_fit();
 }
 
 auto Simulation::bodies() const -> std::span<const Body> {

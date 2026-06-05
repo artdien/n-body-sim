@@ -65,38 +65,30 @@ auto link_shaders(GLuint vertex_shader_id, GLuint fragment_shader_id) -> GLuint 
 
 } // namespace
 
-Renderer::Renderer(u32 width, u32 height, std::span<const simulation::Body> bodies)
-    : width_ {width}, height_ {height}, bodies_ {bodies} {
+Renderer::Renderer(u32 width, u32 height)
+    : vertex_buffer_object_id_ {0}, width_ {width}, height_ {height}, fence_ {nullptr} {
   const auto vertex_shader_id {compile_shader(GL_VERTEX_SHADER, VERTEX_SHADER.data())};
   const auto fragment_shader_id {compile_shader(GL_FRAGMENT_SHADER, FRAGMENT_SHADER.data())};
   shader_program_id_ = link_shaders(vertex_shader_id, fragment_shader_id);
 
-  const auto flags {GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT};
-  glCreateBuffers(1, &vertex_buffer_object_id_);
-  glNamedBufferStorage(vertex_buffer_object_id_, bodies.size() * sizeof(simulation::Body), nullptr, flags);
-  bodies_mapped_ = std::span {reinterpret_cast<simulation::Body*>(glMapNamedBufferRange(
-                                  vertex_buffer_object_id_, 0, bodies.size() * sizeof(simulation::Body), flags)),
-                              bodies.size()};
-
   glCreateVertexArrays(1, &vertex_array_object_id_);
-  glBindVertexArray(vertex_array_object_id_);
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_object_id_);
-  glBindVertexArray(0);
-
   glViewport(0, 0, width, height);
 }
 
 Renderer::~Renderer() {
   glDeleteProgram(shader_program_id_);
-  glUnmapNamedBuffer(vertex_buffer_object_id_);
   glDeleteBuffers(1, &vertex_buffer_object_id_);
   glDeleteVertexArrays(1, &vertex_array_object_id_);
   glDeleteSync(fence_);
 }
 
 auto Renderer::render() -> void {
+  if (bodies_.empty()) {
+    return;
+  }
+
   const auto aspect_ratio {static_cast<f32>(width_) / height_};
-  const auto frustum_size_half {0.5f * frustum_size_};
+  const auto frustum_size_half {0.5f * frustum_size};
   const auto projection {glm::ortho(-frustum_size_half * aspect_ratio, frustum_size_half * aspect_ratio,
                                     -frustum_size_half, frustum_size_half)};
 
@@ -108,13 +100,14 @@ auto Renderer::render() -> void {
     }
   }
 
+  std::lock_guard lock {mutex};
+
   std::ranges::copy(bodies_, bodies_mapped_.begin());
 
   glUseProgram(shader_program_id_);
   glBindVertexArray(vertex_array_object_id_);
 
   glUniform1f(glGetUniformLocation(shader_program_id_, "body_radius"), body_radius);
-  glUniform3fv(glGetUniformLocation(shader_program_id_, "body_color"), 1, glm::value_ptr(body_color));
   glUniformMatrix4fv(glGetUniformLocation(shader_program_id_, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
   glDrawArraysInstanced(GL_TRIANGLES, 0, 6, bodies_.size());
@@ -131,8 +124,23 @@ auto Renderer::clear(glm::vec4 color) -> void {
   glClear(GL_COLOR_BUFFER_BIT);
 }
 
-auto Renderer::adjust_frustum_size(f32 value) -> void {
-  frustum_size_ = std::max(0.01f, frustum_size_ + value);
+auto Renderer::load_bodies(std::span<const simulation::Body> bodies) -> void {
+  std::lock_guard lock {mutex};
+
+  bodies_ = bodies;
+
+  const auto flags {GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT};
+  glDeleteBuffers(1, &vertex_buffer_object_id_);
+  glCreateBuffers(1, &vertex_buffer_object_id_);
+  glNamedBufferStorage(vertex_buffer_object_id_, bodies_.size() * sizeof(simulation::Body), nullptr, flags);
+
+  const auto mapped_buffer {
+      glMapNamedBufferRange(vertex_buffer_object_id_, 0, bodies_.size() * sizeof(simulation::Body), flags)};
+  bodies_mapped_ = std::span {reinterpret_cast<simulation::Body*>(mapped_buffer), bodies_.size()};
+
+  glBindVertexArray(vertex_array_object_id_);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_object_id_);
+  glBindVertexArray(0);
 }
 
 } // namespace nbodysim::rendering

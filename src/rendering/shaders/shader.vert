@@ -16,10 +16,9 @@ layout(binding = 0, std430) readonly buffer SSBO {
 } ssbo;
 
 out vec2 position;
-out vec3 color;
+out vec4 color;
 
 uniform float body_radius;
-uniform vec3 body_color;
 uniform mat4 projection;
 
 const vec2[6] quad = {
@@ -31,7 +30,7 @@ void main() {
     Body body = ssbo.bodies[gl_InstanceID];
 
     position = quad[gl_VertexID];
-    color = body_color;
+    color = body.color;
 
     gl_Position = projection * vec4(body_radius * position + body.position.xy, 0.0, 1.0);
 }

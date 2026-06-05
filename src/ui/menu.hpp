@@ -1,19 +1,33 @@
 #pragma once
 
+#include <functional>
+
 #include <glm/vec3.hpp>
 
 #include "platform/types.hpp"
+#include "simulation/initialization.hpp"
 
 namespace nbodysim::ui {
+
+struct SetupMenu {
+  simulation::InitializationSetup* n_body_setup {nullptr};
+  std::function<void(simulation::InitializationSetup)> on_n_body_setup_changed {};
+};
+
+struct VisualizationMenu {
+  f32* body_radius {nullptr};
+  f32* frustum_size {nullptr};
+};
 
 class Menu {
 public:
   /// Constructs a menu.
   ///
-  /// @param body_radius Radius of the rendered bodies.
-  /// @param body_color Color of the rendered bodies.
+  /// @param visualization_menu Fields for menu section "Visualization".
+  /// @param setup_menu Fields for menu section "Visualization".
   /// @param visible Flag to denote whether menu is currently visible or not.
-  Menu(f32* body_radius, glm::vec3* body_color, bool visible = false);
+  /// @note Fields with default values in menu section structs are not displayed.
+  Menu(const VisualizationMenu& visualization_menu, SetupMenu setup_menu, bool visible = false);
 
   Menu(const Menu&) = delete;
   Menu& operator=(const Menu&) = delete;
@@ -32,8 +46,8 @@ public:
   auto toggle() -> void;
 
 private:
-  f32* body_radius_;
-  glm::vec3* body_color_;
+  VisualizationMenu visualization_menu_;
+  SetupMenu setup_menu_;
   bool visible_;
 };
 
