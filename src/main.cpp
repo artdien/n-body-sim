@@ -1,3 +1,6 @@
+#include <chrono>
+#include <string_view>
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -14,6 +17,9 @@ using namespace nbodysim::simulation;
 using namespace nbodysim::ui;
 
 namespace {
+
+constexpr auto WINDOW_TITLE = std::string_view {"N-Body Simulation"};
+constexpr auto STEP_UPDATE_INTERVAL_MILLISECONDS {1000.0 / 60.0};
 
 auto load_n_body_setup(Simulation* simulation, Renderer* renderer, InitializationSetup setup) {
   simulation->initialize_setup(setup);
@@ -43,7 +49,7 @@ int main() {
   constexpr auto window_width = 1920u;
   constexpr auto window_height = 1080u;
 
-  Window window {"N-Body Simulation", window_width, window_height};
+  Window window {window_width, window_height};
   Simulation simulation {};
   Renderer renderer {window_width, window_height};
 
@@ -54,10 +60,24 @@ int main() {
   Menu menu {{.body_radius = &renderer.body_radius, .frustum_size = &renderer.frustum_size},
              {.n_body_setup = &initial_n_body_setup, .on_n_body_setup_changed = on_n_body_setup_changed}};
 
+  auto previous_time {std::chrono::steady_clock::now()};
+  auto threshold {0.0};
+
   window.open([&](MouseInput mouse, KeyboardInput keyboard) {
+    const auto current_time {std::chrono::steady_clock::now()};
+    const auto elapsed_time {std::chrono::round<std::chrono::microseconds>(current_time - previous_time).count() /
+                             1000.0};
+    previous_time = current_time;
+    threshold += elapsed_time;
+
+    window.set_title(std::format("{} ({:.2f}ms)", WINDOW_TITLE, elapsed_time));
+
     process_input(&menu, &renderer, mouse, keyboard);
 
-    simulation.step();
+    while (threshold >= STEP_UPDATE_INTERVAL_MILLISECONDS) {
+      simulation.step();
+      threshold -= STEP_UPDATE_INTERVAL_MILLISECONDS;
+    }
 
     renderer.clear();
     renderer.render();

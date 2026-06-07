@@ -35,7 +35,7 @@ void key_callback([[maybe_unused]] GLFWwindow* window, int key, int scan_code, i
 
 } // namespace
 
-Window::Window(std::string title, u32 width, u32 height) : title_ {title}, width_ {width}, height_ {height} {
+Window::Window(u32 width, u32 height, const std::string& title) : width_ {width}, height_ {height}, title_ {title} {
   glfwSetErrorCallback([](int error, const char* description) {
     std::println(stderr, "Error initializing window: [{}] {}", error, description);
   });
@@ -80,6 +80,8 @@ Window::Window(std::string title, u32 width, u32 height) : title_ {title}, width
   std::println("Initialized window with OpenGL context");
   std::println("  OpenGL: {}", reinterpret_cast<const char*>(glGetString(GL_VERSION)));
   std::println("  GPU: {}", reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
+
+  glfwSetWindowTitle(window_, "asdasd");
 }
 
 Window::~Window() {
@@ -94,6 +96,11 @@ auto Window::open(std::function<void(MouseInput, KeyboardInput)> execute_per_fra
     glfwSwapBuffers(window_);
     glfwPollEvents();
   }
+}
+
+auto Window::set_title(const std::string& title) -> void {
+  title_ = title;
+  glfwSetWindowTitle(window_, title_.c_str());
 }
 
 } // namespace nbodysim::platform

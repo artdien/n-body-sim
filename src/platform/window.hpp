@@ -19,10 +19,10 @@ public:
   /// Constructing a window does not open it automatically.
   /// The open method must be called for that.
   ///
-  /// @param title Title of the window.
   /// @param width Width of the window.
   /// @param height Height of the window.
-  Window(std::string title, u32 width, u32 height);
+  /// @param title Title of the window.
+  Window(u32 width, u32 height, const std::string& title = "");
 
   Window(const Window&) = delete;
   Window& operator=(const Window&) = delete;
@@ -36,11 +36,16 @@ public:
   ///                          Typically this function should contain update and rendering logic.
   auto open(std::function<void(MouseInput, KeyboardInput)> execute_per_frame) -> void;
 
+  /// Sets the title of the window.
+  ///
+  /// @param title Window title.
+  auto set_title(const std::string& title) -> void;
+
 private:
   GLFWwindow* window_;
-  std::string title_;
   u32 width_;
   u32 height_;
+  std::string title_;
 };
 
 } // namespace nbodysim::platform
