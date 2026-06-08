@@ -80,8 +80,6 @@ Window::Window(u32 width, u32 height, const std::string& title) : width_ {width}
   std::println("Initialized window with OpenGL context");
   std::println("  OpenGL: {}", reinterpret_cast<const char*>(glGetString(GL_VERSION)));
   std::println("  GPU: {}", reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
-
-  glfwSetWindowTitle(window_, "asdasd");
 }
 
 Window::~Window() {

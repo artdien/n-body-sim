@@ -1,5 +1,6 @@
 #pragma once
 
+#include <mutex>
 #include <span>
 #include <vector>
 
@@ -7,6 +8,7 @@
 
 #include "simulation/body.hpp"
 #include "simulation/initialization.hpp"
+#include "simulation/thread_pool.hpp"
 
 namespace nbodysim::simulation {
 
@@ -19,8 +21,8 @@ public:
 
   Simulation(const Simulation&) = delete;
   Simulation& operator=(const Simulation&) = delete;
-  Simulation(Simulation&&) = default;
-  Simulation& operator=(Simulation&&) = default;
+  Simulation(Simulation&&) = delete;
+  Simulation& operator=(Simulation&&) = delete;
   ~Simulation() = default;
 
   /// Calculates the next step in the simulation.
@@ -43,7 +45,16 @@ public:
   auto bodies() const -> std::span<const Body>;
 
 private:
+  /// Calculates the next step in the simulation for a contiguous partition.
+  ///
+  /// @param begin Begin of partition (inclusive).
+  /// @param end End of partition (exclusive).
+  auto step_partition(usize begin, usize end) -> void;
+
   std::vector<Body> bodies_;
+  std::mutex mutex_;
+  ThreadPool thread_pool_;
+  usize num_threads_;
 };
 
 } // namespace nbodysim::simulation

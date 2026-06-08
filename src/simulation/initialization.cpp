@@ -140,7 +140,7 @@ std::vector<Body> initialize_bodies(InitializationSetup setup) {
   case InitializationSetup::LAGRANGE_THREE_BODY:
     return initialize_lagrange_three_body();
   case InitializationSetup::PLUMMER_N_BODY:
-    return initialize_plummer_n_body(100);
+    return initialize_plummer_n_body(1000);
   }
 }
 
