@@ -26,8 +26,8 @@ public:
 
   Window(const Window&) = delete;
   Window& operator=(const Window&) = delete;
-  Window(Window&&) = default;
-  Window& operator=(Window&&) = default;
+  Window(Window&&) = delete;
+  Window& operator=(Window&&) = delete;
   ~Window();
 
   /// Opens a window and runs it indefinitely until it is closed.

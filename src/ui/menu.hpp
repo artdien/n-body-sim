@@ -31,8 +31,8 @@ public:
 
   Menu(const Menu&) = delete;
   Menu& operator=(const Menu&) = delete;
-  Menu(Menu&&) = default;
-  Menu& operator=(Menu&&) = default;
+  Menu(Menu&&) = delete;
+  Menu& operator=(Menu&&) = delete;
   ~Menu() = default;
 
   /// Displays the menu.
