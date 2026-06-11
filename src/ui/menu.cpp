@@ -14,8 +14,8 @@ constexpr auto N_BODY_SETUP_CHANGES = std::array {"Euler (3-Body)", "Lagrange (3
 
 constexpr auto BODY_RADIUS_MIN {0.01f};
 constexpr auto BODY_RADIUS_MAX {10.0f};
-constexpr auto FRUSTUM_SIZE_MIN {0.01};
-constexpr auto FRUSTUM_SIZE_MAX {100.0};
+constexpr auto FRUSTUM_SIZE_MIN {0.01f};
+constexpr auto FRUSTUM_SIZE_MAX {100.0f};
 
 } // namespace
 
