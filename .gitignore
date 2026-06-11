@@ -4,3 +4,4 @@ build/
 
 # Files
 CMakeUserPresets.json
+compile_commands.json
