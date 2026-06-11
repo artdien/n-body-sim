@@ -27,7 +27,7 @@ auto load_n_body_setup(Simulation* simulation, Renderer* renderer, Initializatio
 
   // Plummer model creates lots of bodies that are more spread out.
   // The frustum size is therefore larger for this setup.
-  renderer->frustum_size = setup == InitializationSetup::PLUMMER_N_BODY ? 20.0f : 3.0f;
+  renderer->frustum_size = setup == InitializationSetup::PLUMMER_N_BODY ? 40.0f : 3.0f;
   renderer->body_radius = 0.1f;
 }
 
