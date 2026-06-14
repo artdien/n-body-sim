@@ -2,11 +2,13 @@
 
 #include <algorithm>
 #include <ranges>
+#include <tuple>
 
 #include <glm/geometric.hpp>
 
 #include "platform/types.hpp"
 #include "simulation/initialization.hpp"
+#include "simulation/octree.hpp"
 
 namespace nbodysim::simulation {
 
@@ -15,6 +17,46 @@ namespace {
 constexpr auto G {6.6743e-11f};
 constexpr auto dt {60.0f};
 constexpr auto eps {0.1f};
+constexpr auto theta {1.0f};
+constexpr auto use_barnes_hut {true};
+
+auto determine_initial_center_and_size(std::span<const Body> bodies) -> std::tuple<glm::vec3, f32> {
+  auto size {0.0f};
+  auto center {glm::vec3 {0.0f, 0.0f, 0.0f}};
+  const auto weight {1.0f / bodies.size()};
+
+  std::ranges::for_each(bodies, [&](auto& body) {
+    center += weight * body.position;
+    const auto difference {glm::abs(center - body.position)};
+    size = std::max({difference.x, difference.y, difference.z, size});
+  });
+
+  // Increase size slightly to account for numerical errors
+  size *= 1.05f;
+
+  return {center, size};
+}
+
+auto determine_node_center_and_size(usize octant, const glm::vec3& center, f32 size) -> std::tuple<glm::vec3, f32> {
+  const auto child_size {0.5f * size};
+  const auto child_center = glm::vec3 {
+      octant & 1uz ? center.x + 0.5f * child_size : center.x - 0.5f * child_size,
+      octant & 2uz ? center.y + 0.5f * child_size : center.y - 0.5f * child_size,
+      octant & 4uz ? center.z + 0.5f * child_size : center.z - 0.5f * child_size,
+  };
+
+  return {child_center, child_size};
+}
+
+auto determine_octant(const glm::vec3& center, const glm::vec3& position) -> usize {
+  auto octant {0uz};
+
+  octant |= position.x >= center.x ? 1uz : 0uz;
+  octant |= position.y >= center.y ? 2uz : 0uz;
+  octant |= position.z >= center.z ? 4uz : 0uz;
+
+  return octant;
+}
 
 } // namespace
 
@@ -23,14 +65,18 @@ Simulation::Simulation(const std::vector<Body>& bodies) : bodies_ {bodies}, num_
 auto Simulation::step() -> void {
   const auto lock {std::lock_guard {mutex_}};
 
-  const auto size {bodies_.size() / num_threads_};
+  const auto bodies_per_thread {bodies_.size() / num_threads_};
   const auto remainder {bodies_.size() % num_threads_};
+
+  if constexpr (use_barnes_hut) {
+    construct_barnes_hut_tree();
+  }
 
   auto partition_begin {0uz};
   auto partition_end {0uz};
 
   std::ranges::for_each(std::views::iota(0uz, num_threads_), [&, this](auto i) {
-    partition_end += size + (i < remainder ? 1uz : 0uz);
+    partition_end += bodies_per_thread + (i < remainder ? 1uz : 0uz);
     thread_pool_.schedule([=, this] { step_partition(partition_begin, partition_end); });
     partition_begin = partition_end;
   });
@@ -51,29 +97,108 @@ auto Simulation::bodies() const -> std::span<const Body> {
   return bodies_;
 }
 
+auto Simulation::construct_barnes_hut_tree() -> void {
+  const auto [center, size] {determine_initial_center_and_size(bodies_)};
+
+  node_pool_.deallocate();
+  root_node_idx_ = node_pool_.allocate_node(center, size);
+
+  std::ranges::for_each(std::views::iota(0uz, bodies_.size()),
+                        [this](auto i) { insert_octree_node(root_node_idx_, i); });
+}
+
+auto Simulation::insert_octree_node(usize node_idx, usize body_idx) -> void {
+  // Case 1:
+  // No body exists in this node yet, simply assign the body to this node.
+  // Is also the base case for the recursion.
+  if (node(node_idx).total_mass == 0.0f) {
+    node(node_idx).body_idx = static_cast<i32>(body_idx);
+    node(node_idx).center_of_mass = body(body_idx).position;
+    node(node_idx).total_mass = body(body_idx).mass;
+
+    return;
+  }
+
+  // Case 2:
+  // This node has already a body assigned, therefore there is only one node in this octant.
+  // Adding another one requires subdivision of this octant.
+  if (node(node_idx).body_idx != -1) {
+    const auto assigned_body_idx {static_cast<usize>(node(node_idx).body_idx)};
+    node(node_idx).body_idx = -1;
+
+    insert_octree_child_node(node_idx, assigned_body_idx);
+    insert_octree_child_node(node_idx, body_idx);
+  }
+  // Case 3:
+  // This octant is already subdivided.
+  // Therefore simply continue the recursion.
+  else {
+    insert_octree_child_node(node_idx, body_idx);
+  }
+
+  const auto weighted_center {node(node_idx).total_mass * node(node_idx).center_of_mass +
+                              body(body_idx).mass * body(body_idx).position};
+  node(node_idx).total_mass += body(body_idx).mass;
+  node(node_idx).center_of_mass = (1.0f / node(node_idx).total_mass) * weighted_center;
+}
+
+auto Simulation::insert_octree_child_node(usize node_idx, usize body_idx) -> void {
+  const auto octant {determine_octant(node(node_idx).center, body(body_idx).position)};
+
+  if (node(node_idx).children[octant] == -1) {
+    const auto [center, size] {determine_node_center_and_size(octant, node(node_idx).center, node(node_idx).size)};
+    const auto child_idx {node_pool_.allocate_node(center, size)};
+    node(node_idx).children[octant] = static_cast<i32>(child_idx);
+  }
+
+  insert_octree_node(static_cast<usize>(node(node_idx).children[octant]), body_idx);
+}
+
 auto Simulation::step_partition(usize begin, usize end) -> void {
   std::ranges::for_each(std::views::iota(begin, end), [this](auto i) {
-    bodies_[i].position += bodies_[i].velocity * dt + 0.5f * bodies_[i].acceleration * dt * dt;
-    bodies_[i].velocity += 0.5f * bodies_[i].acceleration * dt;
-    bodies_[i].acceleration = glm::vec4 {0.0};
+    body(i).position += body(i).velocity * dt + 0.5f * body(i).acceleration * dt * dt;
+    body(i).velocity += 0.5f * body(i).acceleration * dt;
+    body(i).acceleration = glm::vec4 {0.0};
   });
 
   thread_pool_.barrier();
 
-  std::ranges::for_each(std::views::iota(begin, end), [this](auto i) {
-    auto other_bodies {std::views::iota(0uz, bodies_.size()) | std::views::filter([&](auto j) { return i != j; })};
-
-    std::ranges::for_each(other_bodies, [&, this](auto j) {
-      const auto direction {bodies_[j].position - bodies_[i].position};
-      const auto distance {glm::dot(direction, direction) + eps * eps};
-      const auto acceleration {G / (glm::pow(distance, 1.5f)) * direction};
-
-      bodies_[i].acceleration += acceleration;
-    });
-  });
+  if constexpr (use_barnes_hut) {
+    std::ranges::for_each(std::views::iota(begin, end),
+                          [this](auto i) { calculate_acceleration_barnes_hut(root_node_idx_, i, theta); });
+  } else {
+    std::ranges::for_each(std::views::iota(begin, end), [this](auto i) { calculate_acceleration_all_pairs(i); });
+  }
 
   std::ranges::for_each(std::views::iota(begin, end),
-                        [this](auto i) { bodies_[i].velocity += 0.5f * bodies_[i].acceleration * dt; });
+                        [this](auto i) { body(i).velocity += 0.5f * body(i).acceleration * dt; });
+}
+
+auto Simulation::calculate_acceleration_all_pairs(usize body_idx) -> void {
+  std::ranges::for_each(bodies_, [&](auto& b) {
+    const auto direction {b.position - body(body_idx).position};
+    const auto distance {glm::dot(direction, direction) + eps * eps};
+    const auto acceleration {(G * b.mass) / (glm::pow(distance, 1.5f)) * direction};
+
+    body(body_idx).acceleration += acceleration;
+  });
+}
+
+auto Simulation::calculate_acceleration_barnes_hut(usize node_idx, usize body_idx, f32 theta) -> void {
+  if (node(node_idx).body_idx == static_cast<i32>(body_idx)) {
+    return;
+  }
+
+  const auto direction {node(node_idx).center_of_mass - body(body_idx).position};
+  const auto distance {glm::length(direction) + eps * eps};
+
+  if (node(node_idx).body_idx != -1 || (node(node_idx).size / distance < theta)) {
+    body(body_idx).acceleration += (G * node(node_idx).total_mass / glm::pow(distance, 3.0f)) * direction;
+    return;
+  }
+
+  std::ranges::for_each(node(node_idx).children | std::views::filter([](auto c) { return c != -1; }),
+                        [&](auto i) { calculate_acceleration_barnes_hut(static_cast<usize>(i), body_idx, theta); });
 }
 
 } // namespace nbodysim::simulation
