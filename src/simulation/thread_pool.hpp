@@ -49,7 +49,7 @@ public:
   /// Capacity is the maximum number of threads that are running in the thread pool.
   ///
   /// @return Capacity of thread pool.
-  auto capacity() -> usize;
+  auto capacity() const -> usize;
 
   /// Sets a synchronization barrier.
   ///
@@ -60,8 +60,6 @@ public:
   auto barrier() -> void;
 
 private:
-  auto thread_execution_loop() -> void;
-
   bool running_;
   usize capacity_;
   usize active_threads_;
@@ -73,6 +71,8 @@ private:
 
   std::queue<std::function<void(void)>> tasks_;
   std::vector<std::jthread> threads_;
+
+  auto thread_execution_loop() -> void;
 };
 
 } // namespace nbodysim::simulation

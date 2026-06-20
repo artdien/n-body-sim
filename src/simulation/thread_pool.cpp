@@ -46,7 +46,7 @@ auto ThreadPool::clear() -> void {
   tasks_ = {};
 }
 
-auto ThreadPool::capacity() -> usize {
+auto ThreadPool::capacity() const -> usize {
   return capacity_;
 }
 
