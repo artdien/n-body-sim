@@ -24,9 +24,9 @@ public:
   OctreeNodePool(usize capacity = 1uz);
 
   OctreeNodePool(const OctreeNodePool&) = delete;
-  OctreeNodePool& operator=(const OctreeNodePool&) = delete;
   OctreeNodePool(OctreeNodePool&&) = delete;
-  OctreeNodePool& operator=(OctreeNodePool&&) = delete;
+  auto operator=(const OctreeNodePool&) -> OctreeNodePool& = delete;
+  auto operator=(OctreeNodePool&&) -> OctreeNodePool& = delete;
 
   /// Allocates a node in the next free space of the underling pool.
   ///

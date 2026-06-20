@@ -19,9 +19,9 @@ public:
   ThreadPool(usize capacity = std::max(1u, std::thread::hardware_concurrency() - 1));
 
   ThreadPool(const ThreadPool&) = delete;
-  ThreadPool& operator=(const ThreadPool&) = delete;
   ThreadPool(ThreadPool&&) = delete;
-  ThreadPool& operator=(ThreadPool&&) = delete;
+  auto operator=(const ThreadPool&) -> ThreadPool& = delete;
+  auto operator=(ThreadPool&&) -> ThreadPool& = delete;
   ~ThreadPool();
 
   /// Schedules a task to run.

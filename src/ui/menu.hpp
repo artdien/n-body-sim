@@ -30,9 +30,9 @@ public:
   Menu(const VisualizationMenu& visualization_menu, SetupMenu setup_menu, bool visible = false);
 
   Menu(const Menu&) = delete;
-  Menu& operator=(const Menu&) = delete;
   Menu(Menu&&) = delete;
-  Menu& operator=(Menu&&) = delete;
+  auto operator=(const Menu&) -> Menu& = delete;
+  auto operator=(Menu&&) -> Menu& = delete;
   ~Menu() = default;
 
   /// Displays the menu.

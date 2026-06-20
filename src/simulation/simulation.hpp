@@ -19,9 +19,9 @@ public:
   Simulation(const std::vector<Body>& bodies = {});
 
   Simulation(const Simulation&) = delete;
-  Simulation& operator=(const Simulation&) = delete;
   Simulation(Simulation&&) = delete;
-  Simulation& operator=(Simulation&&) = delete;
+  auto operator=(const Simulation&) -> Simulation& = delete;
+  auto operator=(Simulation&&) -> Simulation& = delete;
   ~Simulation() = default;
 
   /// Calculates the next step in the simulation.

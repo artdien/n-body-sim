@@ -18,10 +18,11 @@ public:
   /// @param width Width of the window.
   /// @param height Height of the window.
   Renderer(u32 width, u32 height);
+
   Renderer(const Renderer&) = delete;
-  Renderer& operator=(const Renderer&) = delete;
   Renderer(Renderer&&) = delete;
-  Renderer& operator=(Renderer&&) = delete;
+  auto operator=(const Renderer&) -> Renderer& = delete;
+  auto operator=(Renderer&&) -> Renderer& = delete;
   ~Renderer();
 
   /// Radius of each body.

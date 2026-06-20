@@ -25,9 +25,9 @@ public:
   Window(u32 width, u32 height, const std::string& title = "");
 
   Window(const Window&) = delete;
-  Window& operator=(const Window&) = delete;
   Window(Window&&) = delete;
-  Window& operator=(Window&&) = delete;
+  auto operator=(const Window&) -> Window& = delete;
+  auto operator=(Window&&) -> Window& = delete;
   ~Window();
 
   /// Opens a window and runs it indefinitely until it is closed.
