@@ -10,15 +10,17 @@
 #include "simulation/initialization.hpp"
 #include "simulation/simulation.hpp"
 #include "ui/menu.hpp"
+#include "utils/cli.hpp"
 
 using namespace nbodysim::platform;
 using namespace nbodysim::rendering;
 using namespace nbodysim::simulation;
 using namespace nbodysim::ui;
+using namespace nbodysim::utils;
 
 namespace {
 
-constexpr auto WINDOW_TITLE = std::string_view {"N-Body Simulation"};
+constexpr auto WINDOW_TITLE {std::string_view {"N-Body Simulation"}};
 constexpr auto STEP_UPDATE_INTERVAL_MILLISECONDS {1000.0 / 60.0};
 
 auto load_n_body_setup(Simulation* simulation, Renderer* renderer, InitializationSetup setup) {
@@ -45,9 +47,9 @@ auto process_input(Menu* menu, Renderer* renderer, const MouseInput& mouse, cons
 
 } // namespace
 
-int main() {
-  constexpr auto window_width = 1920u;
-  constexpr auto window_height = 1080u;
+int main(int argc, char* argv[]) {
+  const auto window_width {parse_cli_argument(argc, argv, "-width").value_or(1920u)};
+  const auto window_height {parse_cli_argument(argc, argv, "-height").value_or(1080u)};
 
   Window window {window_width, window_height};
   Simulation simulation {};
