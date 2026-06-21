@@ -90,7 +90,17 @@ Window::~Window() {
 
 auto Window::open(std::function<void(MouseInput, KeyboardInput)> execute_per_frame) -> void {
   while (!glfwWindowShouldClose(window_)) {
-    execute_per_frame(get_mouse_input_event().value_or({}), get_keyboard_input_event().value_or({}));
+    auto mouse_input {get_mouse_input_event()};
+    if (mouse_input.has_value() && ImGui::GetIO().WantCaptureMouse) {
+      mouse_input.reset();
+    }
+
+    auto keyboard_input {get_keyboard_input_event()};
+    if (keyboard_input.has_value() && ImGui::GetIO().WantCaptureKeyboard) {
+      keyboard_input.reset();
+    }
+
+    execute_per_frame(mouse_input.value_or({}), keyboard_input.value_or({}));
 
     glfwSwapBuffers(window_);
     glfwPollEvents();
