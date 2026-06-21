@@ -36,6 +36,9 @@ public:
   ///                          Typically this function should contain update and rendering logic.
   auto open(std::function<void(MouseInput, KeyboardInput)> execute_per_frame) -> void;
 
+  /// Closes an opened window.
+  auto close() -> void;
+
   /// Sets the title of the window.
   ///
   /// @param title Window title.

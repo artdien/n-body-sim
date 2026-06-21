@@ -33,9 +33,13 @@ auto load_n_body_setup(Simulation* simulation, Renderer* renderer, Initializatio
   renderer->body_radius = 0.1f;
 }
 
-auto process_input(Menu* menu, Renderer* renderer, const MouseInput& mouse, const KeyboardInput& keyboard) {
+auto process_input(Menu* menu, Renderer* renderer, Window* window, const MouseInput& mouse,
+                   const KeyboardInput& keyboard) {
   if (keyboard.pressed_key == "m") {
     menu->toggle();
+  }
+  if (keyboard.pressed_key == "esc") {
+    window->close();
   }
   if (mouse.scroll_direction == ScrollDirection::UP) {
     renderer->frustum_size -= 1.0f;
@@ -74,7 +78,7 @@ int main(int argc, char* argv[]) {
 
     window.set_title(std::format("{} ({:.2f}ms)", WINDOW_TITLE, elapsed_time));
 
-    process_input(&menu, &renderer, mouse, keyboard);
+    process_input(&menu, &renderer, &window, mouse, keyboard);
 
     while (threshold >= STEP_UPDATE_INTERVAL_MILLISECONDS) {
       simulation.step();

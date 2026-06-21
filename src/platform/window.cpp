@@ -27,6 +27,9 @@ void scroll_callback([[maybe_unused]] GLFWwindow* window, [[maybe_unused]] doubl
 void key_callback([[maybe_unused]] GLFWwindow* window, int key, int scan_code, int action,
                   [[maybe_unused]] int modifiers) {
   if (action == GLFW_PRESS) {
+    if (key == GLFW_KEY_ESCAPE) {
+      add_keyboard_input_event({.pressed_key = std::string {"esc"}});
+    }
     if (const auto key_name {glfwGetKeyName(key, scan_code)}; key_name) {
       add_keyboard_input_event({.pressed_key = std::string {key_name}});
     }
@@ -105,6 +108,10 @@ auto Window::open(std::function<void(MouseInput, KeyboardInput)> execute_per_fra
     glfwSwapBuffers(window_);
     glfwPollEvents();
   }
+}
+
+auto Window::close() -> void {
+  glfwSetWindowShouldClose(window_, GL_TRUE);
 }
 
 auto Window::set_title(const std::string& title) -> void {
