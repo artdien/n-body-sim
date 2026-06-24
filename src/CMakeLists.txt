@@ -15,7 +15,7 @@ target_sources(
     rendering/renderer.cpp
     simulation/initialization.cpp
     simulation/octree.cpp
-    simulation/simulation.cpp
+    simulation/simulation_cpu.cpp
     simulation/thread_pool.cpp
     ui/menu.cpp
     main.cpp)

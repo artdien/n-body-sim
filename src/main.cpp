@@ -57,12 +57,13 @@ int main(int argc, char* argv[]) {
 
   auto window {Window {window_width, window_height}};
   auto renderer {Renderer {window_width, window_height}};
-  auto simulation {std::make_unique<Simulation>(initialize_bodies(initial_n_body_setup))};
+  auto simulation {
+      std::make_unique<Simulation>(std::in_place_type<SimulationCPU>, initialize_bodies(initial_n_body_setup))};
 
   adjust_render_settings(&renderer, initial_n_body_setup);
 
   const auto on_n_body_setup_changed {[&](auto setup) {
-    simulation.reset(new Simulation {initialize_bodies(setup)});
+    simulation = std::make_unique<Simulation>(std::in_place_type<SimulationCPU>, initialize_bodies(setup));
     adjust_render_settings(&renderer, setup);
   }};
 
@@ -84,12 +85,13 @@ int main(int argc, char* argv[]) {
     process_input(&menu, &renderer, &window, mouse, keyboard);
 
     while (threshold >= STEP_UPDATE_INTERVAL_MILLISECONDS) {
-      simulation->step();
+      std::visit([](Simulatable auto& s) { s.step(); }, *simulation);
       threshold -= STEP_UPDATE_INTERVAL_MILLISECONDS;
     }
 
     renderer.clear();
-    renderer.render(simulation->buffer_id(), simulation->bodies_count());
+    renderer.render(std::visit([](Simulatable auto& s) { return s.buffer_id(); }, *simulation),
+                    std::visit([](Simulatable auto& s) { return s.bodies_count(); }, *simulation));
 
     menu.display();
   });

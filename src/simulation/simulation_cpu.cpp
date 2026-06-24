@@ -59,7 +59,8 @@ auto determine_octant(const glm::vec3& center, const glm::vec3& position) -> usi
 
 } // namespace
 
-Simulation::Simulation(const std::vector<Body>& bodies) : bodies_ {bodies}, num_threads_ {thread_pool_.capacity()} {
+SimulationCPU::SimulationCPU(const std::vector<Body>& bodies)
+    : bodies_ {bodies}, num_threads_ {thread_pool_.capacity()} {
   const auto flags {GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT};
 
   glCreateBuffers(1, &buffer_id_);
@@ -69,11 +70,11 @@ Simulation::Simulation(const std::vector<Body>& bodies) : bodies_ {bodies}, num_
   buffer_ = std::span {reinterpret_cast<Body*>(buffer), bodies_.size()};
 }
 
-Simulation::~Simulation() {
+SimulationCPU::~SimulationCPU() {
   glDeleteBuffers(1, &buffer_id_);
 }
 
-auto Simulation::step() -> void {
+auto SimulationCPU::step() -> void {
   const auto bodies_per_thread {bodies_.size() / num_threads_};
   const auto remainder {bodies_.size() % num_threads_};
 
@@ -95,15 +96,15 @@ auto Simulation::step() -> void {
   std::ranges::copy(bodies_, buffer_.begin());
 }
 
-auto Simulation::buffer_id() const -> GLuint {
+auto SimulationCPU::buffer_id() const -> GLuint {
   return buffer_id_;
 }
 
-auto Simulation::bodies_count() const -> usize {
+auto SimulationCPU::bodies_count() const -> usize {
   return bodies_.size();
 }
 
-auto Simulation::construct_barnes_hut_tree() -> void {
+auto SimulationCPU::construct_barnes_hut_tree() -> void {
   const auto [center, size] {determine_initial_center_and_size(bodies_)};
 
   node_pool_.deallocate();
@@ -113,7 +114,7 @@ auto Simulation::construct_barnes_hut_tree() -> void {
                         [this](auto i) { insert_octree_node(root_node_idx_, i); });
 }
 
-auto Simulation::insert_octree_node(usize node_idx, usize body_idx) -> void {
+auto SimulationCPU::insert_octree_node(usize node_idx, usize body_idx) -> void {
   // Case 1:
   // No body exists in this node yet, simply assign the body to this node.
   // Is also the base case for the recursion.
@@ -148,7 +149,7 @@ auto Simulation::insert_octree_node(usize node_idx, usize body_idx) -> void {
   node(node_idx).center_of_mass = (1.0f / node(node_idx).total_mass) * weighted_center;
 }
 
-auto Simulation::insert_octree_child_node(usize node_idx, usize body_idx) -> void {
+auto SimulationCPU::insert_octree_child_node(usize node_idx, usize body_idx) -> void {
   const auto octant {determine_octant(node(node_idx).center, body(body_idx).position)};
 
   if (node(node_idx).children[octant] == -1) {
@@ -160,7 +161,7 @@ auto Simulation::insert_octree_child_node(usize node_idx, usize body_idx) -> voi
   insert_octree_node(static_cast<usize>(node(node_idx).children[octant]), body_idx);
 }
 
-auto Simulation::step_partition(usize begin, usize end) -> void {
+auto SimulationCPU::step_partition(usize begin, usize end) -> void {
   std::ranges::for_each(std::views::iota(begin, end), [this](auto i) {
     body(i).position += body(i).velocity * dt + 0.5f * body(i).acceleration * dt * dt;
     body(i).velocity += 0.5f * body(i).acceleration * dt;
@@ -180,7 +181,7 @@ auto Simulation::step_partition(usize begin, usize end) -> void {
                         [this](auto i) { body(i).velocity += 0.5f * body(i).acceleration * dt; });
 }
 
-auto Simulation::calculate_acceleration_all_pairs(usize body_idx) -> void {
+auto SimulationCPU::calculate_acceleration_all_pairs(usize body_idx) -> void {
   std::ranges::for_each(bodies_, [&](auto& b) {
     const auto direction {b.position - body(body_idx).position};
     const auto distance {glm::dot(direction, direction) + eps * eps};
@@ -190,7 +191,7 @@ auto Simulation::calculate_acceleration_all_pairs(usize body_idx) -> void {
   });
 }
 
-auto Simulation::calculate_acceleration_barnes_hut(usize node_idx, usize body_idx, f32 theta) -> void {
+auto SimulationCPU::calculate_acceleration_barnes_hut(usize node_idx, usize body_idx, f32 theta) -> void {
   if (node(node_idx).body_idx == static_cast<i32>(body_idx)) {
     return;
   }

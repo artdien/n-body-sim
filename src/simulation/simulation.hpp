@@ -1,5 +1,6 @@
 #pragma once
 
+#include <concepts>
 #include <span>
 #include <vector>
 
@@ -11,30 +12,37 @@
 
 namespace nbodysim::simulation {
 
-class Simulation {
-public:
-  /// Creates an N-body simulation.
-  ///
-  /// @param setup Initial state of bodies for simulation.
-  Simulation(const std::vector<Body>& bodies);
-
-  Simulation(const Simulation&) = delete;
-  Simulation(Simulation&&) = delete;
-  auto operator=(const Simulation&) -> Simulation& = delete;
-  auto operator=(Simulation&&) -> Simulation& = delete;
-  ~Simulation();
-
+template <typename S>
+concept Simulatable = requires(S s, const S cs) {
   /// Calculates the next step in the simulation.
-  auto step() -> void;
+  { s.step() } -> std::same_as<void>;
 
   /// Returns the ID for the SSBO containing the current state of bodies.
   ///
   /// @return ID for SSBO.
-  auto buffer_id() const -> GLuint;
+  { cs.buffer_id() } -> std::same_as<GLuint>;
 
   /// Returns the number of bodies in the current simulation.
   ///
   /// @return Number of bodies.
+  { cs.bodies_count() } -> std::same_as<usize>;
+};
+
+class SimulationCPU {
+public:
+  /// Creates an N-body simulation.
+  ///
+  /// @param setup Initial state of bodies for simulation.
+  SimulationCPU(const std::vector<Body>& bodies);
+
+  SimulationCPU(const SimulationCPU&) = delete;
+  SimulationCPU(SimulationCPU&&) = delete;
+  auto operator=(const SimulationCPU&) -> SimulationCPU& = delete;
+  auto operator=(SimulationCPU&&) -> SimulationCPU& = delete;
+  ~SimulationCPU();
+
+  auto step() -> void;
+  auto buffer_id() const -> GLuint;
   auto bodies_count() const -> usize;
 
 private:
@@ -63,5 +71,9 @@ private:
     return bodies_[body_idx];
   }
 };
+
+static_assert(Simulatable<SimulationCPU>);
+
+using Simulation = std::variant<SimulationCPU>;
 
 } // namespace nbodysim::simulation
