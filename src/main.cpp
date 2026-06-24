@@ -1,4 +1,5 @@
 #include <chrono>
+#include <memory>
 #include <string_view>
 
 #include <glad/glad.h>
@@ -23,10 +24,9 @@ namespace {
 constexpr auto WINDOW_TITLE {std::string_view {"N-Body Simulation"}};
 constexpr auto STEP_UPDATE_INTERVAL_MILLISECONDS {1000.0 / 60.0};
 
-auto load_n_body_setup(Simulation* simulation, Renderer* renderer, InitializationSetup setup) {
-  simulation->initialize_setup(setup);
-  renderer->load_bodies(simulation->bodies());
+auto initial_n_body_setup {InitializationSetup::PLUMMER_N_BODY};
 
+auto adjust_render_settings(Renderer* renderer, InitializationSetup setup) {
   // Plummer model creates lots of bodies that are more spread out.
   // The frustum size is therefore larger for this setup.
   renderer->frustum_size = setup == InitializationSetup::PLUMMER_N_BODY ? 100.0f : 3.0f;
@@ -55,16 +55,19 @@ int main(int argc, char* argv[]) {
   const auto window_width {parse_cli_argument(argc, argv, "-width").value_or(1920u)};
   const auto window_height {parse_cli_argument(argc, argv, "-height").value_or(1080u)};
 
-  Window window {window_width, window_height};
-  Simulation simulation {};
-  Renderer renderer {window_width, window_height};
+  auto window {Window {window_width, window_height}};
+  auto renderer {Renderer {window_width, window_height}};
+  auto simulation {std::make_unique<Simulation>(initialize_bodies(initial_n_body_setup))};
 
-  auto initial_n_body_setup {InitializationSetup::PLUMMER_N_BODY};
-  const auto on_n_body_setup_changed {[&](auto setup) { load_n_body_setup(&simulation, &renderer, setup); }};
-  on_n_body_setup_changed(initial_n_body_setup); // invoke callback here for initial loading
+  adjust_render_settings(&renderer, initial_n_body_setup);
 
-  Menu menu {{.body_radius = &renderer.body_radius, .frustum_size = &renderer.frustum_size},
-             {.n_body_setup = &initial_n_body_setup, .on_n_body_setup_changed = on_n_body_setup_changed}};
+  const auto on_n_body_setup_changed {[&](auto setup) {
+    simulation.reset(new Simulation {initialize_bodies(setup)});
+    adjust_render_settings(&renderer, setup);
+  }};
+
+  auto menu {Menu {{.body_radius = &renderer.body_radius, .frustum_size = &renderer.frustum_size},
+                   {.n_body_setup = &initial_n_body_setup, .on_n_body_setup_changed = on_n_body_setup_changed}}};
 
   auto previous_time {std::chrono::steady_clock::now()};
   auto threshold {0.0};
@@ -81,12 +84,12 @@ int main(int argc, char* argv[]) {
     process_input(&menu, &renderer, &window, mouse, keyboard);
 
     while (threshold >= STEP_UPDATE_INTERVAL_MILLISECONDS) {
-      simulation.step();
+      simulation->step();
       threshold -= STEP_UPDATE_INTERVAL_MILLISECONDS;
     }
 
     renderer.clear();
-    renderer.render();
+    renderer.render(simulation->buffer_id(), simulation->bodies_count());
 
     menu.display();
   });

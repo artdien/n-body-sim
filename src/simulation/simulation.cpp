@@ -7,7 +7,6 @@
 #include <glm/geometric.hpp>
 
 #include "platform/types.hpp"
-#include "simulation/initialization.hpp"
 #include "simulation/octree.hpp"
 
 namespace nbodysim::simulation {
@@ -60,11 +59,21 @@ auto determine_octant(const glm::vec3& center, const glm::vec3& position) -> usi
 
 } // namespace
 
-Simulation::Simulation(const std::vector<Body>& bodies) : bodies_ {bodies}, num_threads_ {thread_pool_.capacity()} {}
+Simulation::Simulation(const std::vector<Body>& bodies) : bodies_ {bodies}, num_threads_ {thread_pool_.capacity()} {
+  const auto flags {GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT};
+
+  glCreateBuffers(1, &buffer_id_);
+  glNamedBufferStorage(buffer_id_, bodies_.size() * sizeof(Body), nullptr, flags);
+
+  const auto buffer {glMapNamedBufferRange(buffer_id_, 0, bodies_.size() * sizeof(Body), flags)};
+  buffer_ = std::span {reinterpret_cast<Body*>(buffer), bodies_.size()};
+}
+
+Simulation::~Simulation() {
+  glDeleteBuffers(1, &buffer_id_);
+}
 
 auto Simulation::step() -> void {
-  const auto lock {std::lock_guard {mutex_}};
-
   const auto bodies_per_thread {bodies_.size() / num_threads_};
   const auto remainder {bodies_.size() % num_threads_};
 
@@ -82,19 +91,16 @@ auto Simulation::step() -> void {
   });
 
   thread_pool_.wait_until_inactive();
+
+  std::ranges::copy(bodies_, buffer_.begin());
 }
 
-auto Simulation::initialize_setup(InitializationSetup setup) -> void {
-  const auto lock {std::lock_guard {mutex_}};
-
-  thread_pool_.wait_until_inactive();
-
-  bodies_ = initialize_bodies(setup);
-  bodies_.shrink_to_fit();
+auto Simulation::buffer_id() const -> GLuint {
+  return buffer_id_;
 }
 
-auto Simulation::bodies() const -> std::span<const Body> {
-  return bodies_;
+auto Simulation::bodies_count() const -> usize {
+  return bodies_.size();
 }
 
 auto Simulation::construct_barnes_hut_tree() -> void {
