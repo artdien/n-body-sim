@@ -72,8 +72,36 @@ private:
   }
 };
 
-static_assert(Simulatable<SimulationCPU>);
+class SimulationGPU {
+public:
+  /// Creates an N-body simulation.
+  ///
+  /// @param setup Initial state of bodies for simulation.
+  SimulationGPU(const std::vector<Body>& bodies);
 
-using Simulation = std::variant<SimulationCPU>;
+  SimulationGPU(const SimulationGPU&) = delete;
+  SimulationGPU(SimulationGPU&&) = delete;
+  auto operator=(const SimulationGPU&) -> SimulationGPU& = delete;
+  auto operator=(SimulationGPU&&) -> SimulationGPU& = delete;
+  ~SimulationGPU();
+
+  auto step() -> void;
+  auto buffer_id() const -> GLuint;
+  auto bodies_count() const -> usize;
+
+private:
+  GLuint buffer_id_;
+  std::span<Body> buffer_;
+
+  GLuint update_position_program_id_;
+  GLuint update_acceleration_program_id_;
+
+  usize bodies_count_;
+};
+
+static_assert(Simulatable<SimulationCPU>);
+static_assert(Simulatable<SimulationGPU>);
+
+using Simulation = std::variant<SimulationCPU, SimulationGPU>;
 
 } // namespace nbodysim::simulation

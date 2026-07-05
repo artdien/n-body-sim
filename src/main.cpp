@@ -58,12 +58,12 @@ int main(int argc, char* argv[]) {
   auto window {Window {window_width, window_height}};
   auto renderer {Renderer {window_width, window_height}};
   auto simulation {
-      std::make_unique<Simulation>(std::in_place_type<SimulationCPU>, initialize_bodies(initial_n_body_setup))};
+      std::make_unique<Simulation>(std::in_place_type<SimulationGPU>, initialize_bodies(initial_n_body_setup))};
 
   adjust_render_settings(&renderer, initial_n_body_setup);
 
   const auto on_n_body_setup_changed {[&](auto setup) {
-    simulation = std::make_unique<Simulation>(std::in_place_type<SimulationCPU>, initialize_bodies(setup));
+    simulation = std::make_unique<Simulation>(std::in_place_type<SimulationGPU>, initialize_bodies(setup));
     adjust_render_settings(&renderer, setup);
   }};
 

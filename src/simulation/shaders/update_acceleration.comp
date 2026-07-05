@@ -1,0 +1,64 @@
+R"(
+
+#version 460 core
+
+layout (local_size_x = %TILE_SIZE%, local_size_y = 1, local_size_z = 1) in;
+
+struct Body {
+  vec3 position;
+  float radius;
+  vec3 velocity;
+  float mass;
+  vec3 acceleration;
+  vec4 color;
+};
+
+layout(binding = 0, std430) buffer SSBO {
+  Body bodies[];
+};
+
+uniform uint N;
+uniform float G;
+uniform float dt;
+uniform float eps;
+
+shared vec4 cache[%TILE_SIZE%];
+
+vec3 calculate_acceleration(vec3 a_i, vec3 x_i, vec3 x_j, float m_j) {
+  vec3 direction = x_j - x_i;
+  float distance = dot(direction, direction) + eps * eps;
+  a_i += ((G * m_j) / pow(distance, 1.5)) * direction;
+
+  return a_i;
+}
+
+void main() {
+  uint stride = gl_NumWorkGroups.x * gl_WorkGroupSize.x;
+
+  for (uint s = gl_GlobalInvocationID.x; s < N; s += stride) {
+    vec3 position = bodies[s].position;
+    vec3 acceleration = vec3(0.0);
+
+    for (int tile = 0; tile < gl_NumWorkGroups.x; ++tile) {
+      uint idx = gl_LocalInvocationID.x + tile * gl_WorkGroupSize.x;
+      if (idx >= N) {
+        continue;
+      }
+
+      cache[gl_LocalInvocationID.x] = vec4(bodies[idx].position, bodies[idx].mass);
+
+      barrier();
+
+      for (int i = 0; i < gl_WorkGroupSize.x; ++i) {
+        acceleration = calculate_acceleration(acceleration, position, cache[i].xyz, cache[i].w);
+      }
+
+      barrier();
+    }
+
+    bodies[s].acceleration = acceleration;
+    bodies[s].velocity += 0.5 * acceleration * dt;
+  }
+}
+
+)"

@@ -16,6 +16,7 @@ target_sources(
     simulation/initialization.cpp
     simulation/octree.cpp
     simulation/simulation_cpu.cpp
+    simulation/simulation_gpu.cpp
     simulation/thread_pool.cpp
     ui/menu.cpp
     main.cpp)

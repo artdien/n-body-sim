@@ -7,6 +7,8 @@
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 
+#include "utils/gl.hpp"
+
 namespace nbodysim::rendering {
 
 namespace {
@@ -19,53 +21,12 @@ constexpr auto FRAGMENT_SHADER = std::string_view {
 #include "shaders/shader.frag"
 };
 
-auto compile_shader(GLuint shader_type, const char* shader) -> GLuint {
-  const auto shader_id {glCreateShader(shader_type)};
-  glShaderSource(shader_id, 1, &shader, nullptr);
-  glCompileShader(shader_id);
-
-  GLint log_size;
-  glGetShaderiv(shader_id, GL_INFO_LOG_LENGTH, &log_size);
-  if (log_size > 0) {
-    std::vector<char> log(static_cast<u32>(log_size + 1));
-    glGetShaderInfoLog(shader_id, log_size, nullptr, log.data());
-    glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_OTHER, 0, GL_DEBUG_SEVERITY_NOTIFICATION, -1,
-                         log.data());
-  }
-
-  return shader_id;
-}
-
-auto link_shaders(GLuint vertex_shader_id, GLuint fragment_shader_id) -> GLuint {
-  const auto shader_program_id {glCreateProgram()};
-  glAttachShader(shader_program_id, vertex_shader_id);
-  glAttachShader(shader_program_id, fragment_shader_id);
-  glLinkProgram(shader_program_id);
-
-  GLint log_size;
-  glGetProgramiv(shader_program_id, GL_INFO_LOG_LENGTH, &log_size);
-  if (log_size > 0) {
-    std::vector<char> log(static_cast<u32>(log_size + 1));
-    glGetProgramInfoLog(shader_program_id, log_size, nullptr, log.data());
-    glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_OTHER, 0, GL_DEBUG_SEVERITY_NOTIFICATION, -1,
-                         log.data());
-  }
-
-  glDetachShader(shader_program_id, vertex_shader_id);
-  glDeleteShader(vertex_shader_id);
-
-  glDetachShader(shader_program_id, fragment_shader_id);
-  glDeleteShader(fragment_shader_id);
-
-  return shader_program_id;
-}
-
 } // namespace
 
 Renderer::Renderer(u32 width, u32 height) : width_ {width}, height_ {height}, fence_ {nullptr} {
-  const auto vertex_shader_id {compile_shader(GL_VERTEX_SHADER, VERTEX_SHADER.data())};
-  const auto fragment_shader_id {compile_shader(GL_FRAGMENT_SHADER, FRAGMENT_SHADER.data())};
-  shader_program_id_ = link_shaders(vertex_shader_id, fragment_shader_id);
+  const auto vertex_shader_id {utils::compile_shader(GL_VERTEX_SHADER, VERTEX_SHADER.data())};
+  const auto fragment_shader_id {utils::compile_shader(GL_FRAGMENT_SHADER, FRAGMENT_SHADER.data())};
+  shader_program_id_ = utils::link_shaders(vertex_shader_id, fragment_shader_id);
 
   glViewport(0, 0, width, height);
 
@@ -74,9 +35,6 @@ Renderer::Renderer(u32 width, u32 height) : width_ {width}, height_ {height}, fe
   // we will bind here a "dummy" VAO to satisfy this requirement.
   glCreateVertexArrays(1, &vertex_array_object_id_);
   glBindVertexArray(vertex_array_object_id_);
-
-  // Since we only use one shader program, we bind it here once.
-  glUseProgram(shader_program_id_);
 }
 
 Renderer::~Renderer() {
@@ -98,6 +56,8 @@ auto Renderer::render(GLuint buffer_id, usize count) -> void {
                            "Waiting on fence failed");
     }
   }
+
+  glUseProgram(shader_program_id_);
 
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, buffer_id);
 

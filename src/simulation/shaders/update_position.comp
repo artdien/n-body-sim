@@ -1,0 +1,35 @@
+R"(
+
+#version 460 core
+
+layout (local_size_x = %TILE_SIZE%, local_size_y = 1, local_size_z = 1) in;
+
+struct Body {
+  vec3 position;
+  float radius;
+  vec3 velocity;
+  float mass;
+  vec3 acceleration;
+  vec4 color;
+};
+
+layout(binding = 0, std430) buffer SSBO {
+  Body bodies[];
+};
+
+uniform uint N;
+uniform float dt;
+
+void main() {
+  uint stride = gl_NumWorkGroups.x * gl_WorkGroupSize.x;
+
+  for (uint s = gl_GlobalInvocationID.x; s < N; s += stride) {
+    vec3 velocity = bodies[s].velocity;
+    vec3 acceleration = bodies[s].acceleration;
+
+    bodies[s].position += velocity * dt + 0.5 * acceleration * dt * dt;
+    bodies[s].velocity += 0.5 * acceleration * dt;
+  }
+}
+
+)"

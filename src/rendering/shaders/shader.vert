@@ -13,7 +13,7 @@ struct Body {
 
 layout(binding = 0, std430) readonly buffer SSBO {
     Body bodies[];
-} ssbo;
+};
 
 out vec2 position;
 out vec4 color;
@@ -27,7 +27,7 @@ const vec2[6] quad = {
 };
 
 void main() {
-    Body body = ssbo.bodies[gl_InstanceID];
+    Body body = bodies[gl_InstanceID];
 
     position = quad[gl_VertexID];
     color = body.color;

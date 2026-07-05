@@ -1,7 +1,5 @@
 #pragma once
 
-#include <new>
-
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 
@@ -10,7 +8,7 @@
 namespace nbodysim::simulation {
 
 // Alignments are due to:
-// - std430 layout for SSBO in shader, which must match with alignment of this struct
+// - std430 layout for SSBO in shaders, which must match with alignment of this struct
 // - avoidance of false sharing when processing vector of this struct multi-threaded
 struct alignas(std::hardware_constructive_interference_size) Body {
   alignas(16) glm::vec3 position;
