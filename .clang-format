@@ -7,3 +7,5 @@ AllowShortFunctionsOnASingleLine: Empty
 AllowShortEnumsOnASingleLine: false
 SortIncludes: CaseInsensitive
 SpaceBeforeCpp11BracedList: true
+AlwaysBreakTemplateDeclarations: Yes
+IndentRequiresClause: false
