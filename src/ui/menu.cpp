@@ -6,21 +6,32 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
+#include "simulation/configuration.hpp"
+
 namespace nbodysim::ui {
 
 namespace {
 
-constexpr auto N_BODY_SETUP_CHANGES = std::array {"Euler (3-Body)", "Lagrange (3-Body)", "Plummer (N-Body)"};
+constexpr auto CONFIGURATION_TYPE_DESCRIPTIONS {std::array {"Euler (3-Body)", "Lagrange (3-Body)", "Plummer (N-Body)"}};
 
 constexpr auto BODY_RADIUS_MIN {0.01f};
 constexpr auto BODY_RADIUS_MAX {10.0f};
 constexpr auto FRUSTUM_SIZE_MIN {0.01f};
 constexpr auto FRUSTUM_SIZE_MAX {100.0f};
 
+auto adjust_render_settings(rendering::Renderer* renderer, const simulation::ConfigurationType& type) -> void {
+  // Plummer model creates lots of bodies that are more spread out.
+  // The frustum size is therefore larger for this setup.
+  renderer->frustum_size = type == simulation::ConfigurationType::PLUMMER_N_BODY ? 100.0f : 3.0f;
+  renderer->body_radius = 0.1f;
+}
+
 } // namespace
 
-Menu::Menu(const VisualizationMenu& visualization_menu, SetupMenu setup_menu, bool visible)
-    : visualization_menu_ {visualization_menu}, setup_menu_ {setup_menu}, visible_ {visible} {
+Menu::Menu(rendering::Renderer* renderer, std::unique_ptr<simulation::Simulation>* simulation,
+           simulation::Configuration* configuration, bool visible)
+    : renderer_ {renderer}, simulation_ {simulation}, configuration_ {configuration}, visible_ {visible} {
+
   ImGuiIO& io = ImGui::GetIO();
   io.IniFilename = nullptr;
 }
@@ -38,27 +49,20 @@ auto Menu::display() -> void {
 
   ImGui::SeparatorText("N-Body Setup");
 
-  if (setup_menu_.n_body_setup) {
-    ImGui::Combo("N-Body Setup", reinterpret_cast<i32*>(setup_menu_.n_body_setup), N_BODY_SETUP_CHANGES.data(),
-                 N_BODY_SETUP_CHANGES.size());
-  }
+  ImGui::Combo("N-Body Setup", reinterpret_cast<i32*>(&configuration_->type), CONFIGURATION_TYPE_DESCRIPTIONS.data(),
+               CONFIGURATION_TYPE_DESCRIPTIONS.size());
 
-  if (setup_menu_.on_n_body_setup_changed) {
-    if (ImGui::Button("Load Setup")) {
-      setup_menu_.on_n_body_setup_changed(*setup_menu_.n_body_setup);
-    }
+  if (ImGui::Button("Apply Configuration")) {
+    *simulation_ = std::make_unique<simulation::Simulation>(std::in_place_type<simulation::SimulationGPU>,
+                                                            initialize_configuration(*configuration_));
+    adjust_render_settings(renderer_, configuration_->type);
   }
 
   ImGui::SeparatorText("Visualization");
 
-  if (visualization_menu_.body_radius) {
-    ImGui::SliderScalar("Body Radius", ImGuiDataType_Float, visualization_menu_.body_radius, &BODY_RADIUS_MIN,
-                        &BODY_RADIUS_MAX);
-  }
-  if (visualization_menu_.frustum_size) {
-    ImGui::SliderScalar("Frustum Size", ImGuiDataType_Float, visualization_menu_.frustum_size, &FRUSTUM_SIZE_MIN,
-                        &FRUSTUM_SIZE_MAX);
-  }
+  ImGui::SliderScalar("Body Radius", ImGuiDataType_Float, &renderer_->body_radius, &BODY_RADIUS_MIN, &BODY_RADIUS_MAX);
+  ImGui::SliderScalar("Frustum Size", ImGuiDataType_Float, &renderer_->frustum_size, &FRUSTUM_SIZE_MIN,
+                      &FRUSTUM_SIZE_MAX);
 
   ImGui::End();
 

@@ -8,7 +8,7 @@
 #include "platform/input.hpp"
 #include "platform/window.hpp"
 #include "rendering/renderer.hpp"
-#include "simulation/initialization.hpp"
+#include "simulation/configuration.hpp"
 #include "simulation/simulation.hpp"
 #include "ui/menu.hpp"
 #include "utils/cli.hpp"
@@ -24,17 +24,8 @@ namespace {
 constexpr auto WINDOW_TITLE {std::string_view {"N-Body Simulation"}};
 constexpr auto STEP_UPDATE_INTERVAL_MILLISECONDS {1000.0 / 60.0};
 
-auto initial_n_body_setup {InitializationSetup::PLUMMER_N_BODY};
-
-auto adjust_render_settings(Renderer* renderer, InitializationSetup setup) {
-  // Plummer model creates lots of bodies that are more spread out.
-  // The frustum size is therefore larger for this setup.
-  renderer->frustum_size = setup == InitializationSetup::PLUMMER_N_BODY ? 100.0f : 3.0f;
-  renderer->body_radius = 0.1f;
-}
-
 auto process_input(Menu* menu, Renderer* renderer, Window* window, const MouseInput& mouse,
-                   const KeyboardInput& keyboard) {
+                   const KeyboardInput& keyboard) -> void {
   if (keyboard.pressed_key == "m") {
     menu->toggle();
   }
@@ -55,20 +46,16 @@ int main(int argc, char* argv[]) {
   const auto window_width {parse_cli_argument(argc, argv, "-width").value_or(1920u)};
   const auto window_height {parse_cli_argument(argc, argv, "-height").value_or(1080u)};
 
+  auto configuration {Configuration {.type = ConfigurationType::PLUMMER_N_BODY, .count = 1000}};
+  auto bodies {initialize_configuration(configuration)};
+
   auto window {Window {window_width, window_height}};
   auto renderer {Renderer {window_width, window_height}};
-  auto simulation {
-      std::make_unique<Simulation>(std::in_place_type<SimulationGPU>, initialize_bodies(initial_n_body_setup))};
+  auto simulation {std::make_unique<Simulation>(std::in_place_type<SimulationGPU>, bodies)};
+  auto menu {Menu {&renderer, &simulation, &configuration}};
 
-  adjust_render_settings(&renderer, initial_n_body_setup);
-
-  const auto on_n_body_setup_changed {[&](auto setup) {
-    simulation = std::make_unique<Simulation>(std::in_place_type<SimulationGPU>, initialize_bodies(setup));
-    adjust_render_settings(&renderer, setup);
-  }};
-
-  auto menu {Menu {{.body_radius = &renderer.body_radius, .frustum_size = &renderer.frustum_size},
-                   {.n_body_setup = &initial_n_body_setup, .on_n_body_setup_changed = on_n_body_setup_changed}}};
+  renderer.frustum_size = 100.0f;
+  renderer.body_radius = 0.1f;
 
   auto previous_time {std::chrono::steady_clock::now()};
   auto threshold {0.0};

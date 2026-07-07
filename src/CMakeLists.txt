@@ -13,7 +13,7 @@ target_sources(
     platform/input.cpp
     platform/window.cpp
     rendering/renderer.cpp
-    simulation/initialization.cpp
+    simulation/configuration.cpp
     simulation/octree.cpp
     simulation/simulation_cpu.cpp
     simulation/simulation_gpu.cpp

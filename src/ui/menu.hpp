@@ -1,23 +1,24 @@
 #pragma once
 
-#include <functional>
+#include <memory>
 
 #include <glm/vec3.hpp>
 
-#include "platform/types.hpp"
-#include "simulation/initialization.hpp"
+#include "rendering/renderer.hpp"
+#include "simulation/configuration.hpp"
+#include "simulation/simulation.hpp"
 
 namespace nbodysim::ui {
 
-struct SetupMenu {
-  simulation::InitializationSetup* n_body_setup {nullptr};
-  std::function<void(simulation::InitializationSetup)> on_n_body_setup_changed {};
-};
-
-struct VisualizationMenu {
-  f32* body_radius {nullptr};
-  f32* frustum_size {nullptr};
-};
+// struct SetupMenu {
+//   simulation::ConfigurationType* n_body_setup {nullptr};
+//   std::function<void(simulation::Configuration)> on_n_body_setup_changed {};
+// };
+//
+// struct VisualizationMenu {
+//   f32* body_radius {nullptr};
+//   f32* frustum_size {nullptr};
+// };
 
 class Menu {
 public:
@@ -27,7 +28,8 @@ public:
   /// @param setup_menu Fields for menu section "Visualization".
   /// @param visible Flag to denote whether menu is currently visible or not.
   /// @note Fields with default values in menu section structs are not displayed.
-  Menu(const VisualizationMenu& visualization_menu, SetupMenu setup_menu, bool visible = false);
+  Menu(rendering::Renderer* renderer, std::unique_ptr<simulation::Simulation>* simulation,
+       simulation::Configuration* configuration, bool visible = false);
 
   Menu(const Menu&) = delete;
   Menu(Menu&&) = delete;
@@ -46,8 +48,9 @@ public:
   auto toggle() -> void;
 
 private:
-  VisualizationMenu visualization_menu_;
-  SetupMenu setup_menu_;
+  rendering::Renderer* renderer_;
+  std::unique_ptr<simulation::Simulation>* simulation_;
+  simulation::Configuration* configuration_;
   bool visible_;
 };
 
