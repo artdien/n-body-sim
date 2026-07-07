@@ -34,7 +34,11 @@ public:
   ///
   /// @param execute_per_frame A function which will be executed once per frame.
   ///                          Typically this function should contain update and rendering logic.
-  auto open(std::function<void(MouseInput, KeyboardInput)> execute_per_frame) -> void;
+  ///                          The arguments for this function are:
+  ///                          - Last mouse input event since last frame.
+  ///                          - Last keyboard input event since last frame.
+  ///                          - Elapsed time since last frame.
+  auto open(std::function<void(MouseInput, KeyboardInput, double)> execute_per_frame) -> void;
 
   /// Closes an opened window.
   auto close() -> void;

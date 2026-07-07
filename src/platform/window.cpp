@@ -1,5 +1,6 @@
 #include "platform/window.hpp"
 
+#include <chrono>
 #include <print>
 #include <stdexcept>
 
@@ -91,8 +92,15 @@ Window::~Window() {
   glfwTerminate();
 }
 
-auto Window::open(std::function<void(MouseInput, KeyboardInput)> execute_per_frame) -> void {
+auto Window::open(std::function<void(MouseInput, KeyboardInput, double)> execute_per_frame) -> void {
+  auto previous_time {std::chrono::steady_clock::now()};
+
   while (!glfwWindowShouldClose(window_)) {
+    const auto current_time {std::chrono::steady_clock::now()};
+    const auto elapsed_time {std::chrono::round<std::chrono::microseconds>(current_time - previous_time).count() /
+                             1000.0};
+    previous_time = current_time;
+
     auto mouse_input {get_mouse_input_event()};
     if (mouse_input.has_value() && ImGui::GetIO().WantCaptureMouse) {
       mouse_input.reset();
@@ -103,7 +111,7 @@ auto Window::open(std::function<void(MouseInput, KeyboardInput)> execute_per_fra
       keyboard_input.reset();
     }
 
-    execute_per_frame(mouse_input.value_or({}), keyboard_input.value_or({}));
+    execute_per_frame(mouse_input.value_or({}), keyboard_input.value_or({}), elapsed_time);
 
     glfwSwapBuffers(window_);
     glfwPollEvents();

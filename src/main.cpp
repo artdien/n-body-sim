@@ -1,4 +1,3 @@
-#include <chrono>
 #include <memory>
 #include <string_view>
 
@@ -57,14 +56,9 @@ int main(int argc, char* argv[]) {
   renderer.frustum_size = 100.0f;
   renderer.body_radius = 0.1f;
 
-  auto previous_time {std::chrono::steady_clock::now()};
   auto threshold {0.0};
 
-  window.open([&](MouseInput mouse, KeyboardInput keyboard) {
-    const auto current_time {std::chrono::steady_clock::now()};
-    const auto elapsed_time {std::chrono::round<std::chrono::microseconds>(current_time - previous_time).count() /
-                             1000.0};
-    previous_time = current_time;
+  window.open([&](MouseInput mouse, KeyboardInput keyboard, double elapsed_time) {
     threshold += elapsed_time;
 
     window.set_title(std::format("{} ({:.2f}ms)", WINDOW_TITLE, elapsed_time));
