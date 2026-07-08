@@ -13,12 +13,6 @@ namespace nbodysim::simulation {
 
 namespace {
 
-constexpr auto G {6.6743e-11f};
-constexpr auto dt {60.0f};
-constexpr auto eps {0.1f};
-constexpr auto tile_size {256u};
-constexpr auto group_count {40};
-
 constexpr auto TILE_SIZE_REPLACE_TEXT {std::string_view {"%TILE_SIZE%"}};
 
 constexpr auto UPDATE_POSITION_SHADER {std::string_view {
@@ -31,14 +25,15 @@ constexpr auto UPDATE_ACCELERATION_SHADER {std::string_view {
 
 } // namespace
 
-SimulationGPU::SimulationGPU(const std::vector<Body>& bodies) : bodies_count_ {bodies.size()} {
+SimulationGPU::SimulationGPU(const SimulationParametersGPU& parameters, const std::vector<Body>& bodies)
+    : parameters_ {parameters}, bodies_count_ {bodies.size()} {
   const auto update_position_shader {
-      utils::replace_all(UPDATE_POSITION_SHADER, TILE_SIZE_REPLACE_TEXT, std::format("{}", tile_size))};
+      utils::replace_all(UPDATE_POSITION_SHADER, TILE_SIZE_REPLACE_TEXT, std::format("{}", parameters_.tile_size))};
   const auto update_shader_id {utils::compile_shader(GL_COMPUTE_SHADER, update_position_shader.data())};
   update_position_program_id_ = utils::link_shaders(update_shader_id);
 
   const auto update_acceleration_shader {
-      utils::replace_all(UPDATE_ACCELERATION_SHADER, TILE_SIZE_REPLACE_TEXT, std::format("{}", tile_size))};
+      utils::replace_all(UPDATE_ACCELERATION_SHADER, TILE_SIZE_REPLACE_TEXT, std::format("{}", parameters_.tile_size))};
   const auto force_shader_id {utils::compile_shader(GL_COMPUTE_SHADER, update_acceleration_shader.data())};
   update_acceleration_program_id_ = utils::link_shaders(force_shader_id);
 
@@ -62,19 +57,19 @@ SimulationGPU::~SimulationGPU() {
 auto SimulationGPU::step() -> void {
   glUseProgram(update_position_program_id_);
   glUniform1ui(glGetUniformLocation(update_position_program_id_, "N"), bodies_count_);
-  glUniform1f(glGetUniformLocation(update_position_program_id_, "dt"), dt);
+  glUniform1f(glGetUniformLocation(update_position_program_id_, "dt"), parameters_.general.dt);
 
-  glDispatchCompute(group_count, 1, 1);
+  glDispatchCompute(parameters_.dispatch_size, 1, 1);
 
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
   glUseProgram(update_acceleration_program_id_);
   glUniform1ui(glGetUniformLocation(update_acceleration_program_id_, "N"), bodies_count_);
-  glUniform1f(glGetUniformLocation(update_acceleration_program_id_, "G"), G);
-  glUniform1f(glGetUniformLocation(update_acceleration_program_id_, "dt"), dt);
-  glUniform1f(glGetUniformLocation(update_acceleration_program_id_, "eps"), eps);
+  glUniform1f(glGetUniformLocation(update_acceleration_program_id_, "G"), parameters_.general.G);
+  glUniform1f(glGetUniformLocation(update_acceleration_program_id_, "dt"), parameters_.general.dt);
+  glUniform1f(glGetUniformLocation(update_acceleration_program_id_, "eps"), parameters_.general.eps);
 
-  glDispatchCompute(group_count, 1, 1);
+  glDispatchCompute(parameters_.dispatch_size, 1, 1);
 
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 }

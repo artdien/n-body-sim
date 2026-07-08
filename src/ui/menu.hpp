@@ -29,6 +29,7 @@ public:
   /// @param visible Flag to denote whether menu is currently visible or not.
   /// @note Fields with default values in menu section structs are not displayed.
   Menu(rendering::Renderer* renderer, std::unique_ptr<simulation::Simulation>* simulation,
+       simulation::SimulationParametersCPU* parameters_cpu, simulation::SimulationParametersGPU* parameters_gpu,
        simulation::Configuration* configuration, bool visible = false);
 
   Menu(const Menu&) = delete;
@@ -50,6 +51,8 @@ public:
 private:
   rendering::Renderer* renderer_;
   std::unique_ptr<simulation::Simulation>* simulation_;
+  simulation::SimulationParametersCPU* parameters_cpu_;
+  simulation::SimulationParametersGPU* parameters_gpu_;
   simulation::Configuration* configuration_;
   bool visible_;
 };

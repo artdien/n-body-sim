@@ -13,12 +13,6 @@ namespace nbodysim::simulation {
 
 namespace {
 
-constexpr auto G {6.6743e-11f};
-constexpr auto dt {60.0f};
-constexpr auto eps {0.1f};
-constexpr auto theta {1.0f};
-constexpr auto use_barnes_hut {true};
-
 auto determine_initial_center_and_size(std::span<const Body> bodies) -> std::tuple<glm::vec3, f32> {
   auto size {0.0f};
   auto center {glm::vec3 {0.0f, 0.0f, 0.0f}};
@@ -59,8 +53,8 @@ auto determine_octant(const glm::vec3& center, const glm::vec3& position) -> usi
 
 } // namespace
 
-SimulationCPU::SimulationCPU(const std::vector<Body>& bodies)
-    : bodies_ {bodies}, num_threads_ {thread_pool_.capacity()} {
+SimulationCPU::SimulationCPU(const SimulationParametersCPU& parameters, const std::vector<Body>& bodies)
+    : parameters_ {parameters}, bodies_ {bodies}, thread_pool_ {parameters.thread_count} {
   const auto flags {GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT};
 
   glCreateBuffers(1, &buffer_id_);
@@ -75,17 +69,17 @@ SimulationCPU::~SimulationCPU() {
 }
 
 auto SimulationCPU::step() -> void {
-  const auto bodies_per_thread {bodies_.size() / num_threads_};
-  const auto remainder {bodies_.size() % num_threads_};
+  const auto bodies_per_thread {bodies_.size() / parameters_.thread_count};
+  const auto remainder {bodies_.size() % parameters_.thread_count};
 
-  if constexpr (use_barnes_hut) {
+  if (parameters_.use_barnes_hut) {
     construct_barnes_hut_tree();
   }
 
   auto partition_begin {0uz};
   auto partition_end {0uz};
 
-  std::ranges::for_each(std::views::iota(0uz, num_threads_), [&, this](auto i) {
+  std::ranges::for_each(std::views::iota(0uz, parameters_.thread_count), [&, this](auto i) {
     partition_end += bodies_per_thread + (i < remainder ? 1uz : 0uz);
     thread_pool_.schedule([=, this] { step_partition(partition_begin, partition_end); });
     partition_begin = partition_end;
@@ -163,29 +157,30 @@ auto SimulationCPU::insert_octree_child_node(usize node_idx, usize body_idx) -> 
 
 auto SimulationCPU::step_partition(usize begin, usize end) -> void {
   std::ranges::for_each(std::views::iota(begin, end), [this](auto i) {
-    body(i).position += body(i).velocity * dt + 0.5f * body(i).acceleration * dt * dt;
-    body(i).velocity += 0.5f * body(i).acceleration * dt;
+    body(i).position += body(i).velocity * parameters_.general.dt +
+                        0.5f * body(i).acceleration * parameters_.general.dt * parameters_.general.dt;
+    body(i).velocity += 0.5f * body(i).acceleration * parameters_.general.dt;
     body(i).acceleration = glm::vec4 {0.0};
   });
 
   thread_pool_.barrier();
 
-  if constexpr (use_barnes_hut) {
+  if (parameters_.use_barnes_hut) {
     std::ranges::for_each(std::views::iota(begin, end),
-                          [this](auto i) { calculate_acceleration_barnes_hut(root_node_idx_, i, theta); });
+                          [this](auto i) { calculate_acceleration_barnes_hut(root_node_idx_, i, parameters_.theta); });
   } else {
     std::ranges::for_each(std::views::iota(begin, end), [this](auto i) { calculate_acceleration_all_pairs(i); });
   }
 
   std::ranges::for_each(std::views::iota(begin, end),
-                        [this](auto i) { body(i).velocity += 0.5f * body(i).acceleration * dt; });
+                        [this](auto i) { body(i).velocity += 0.5f * body(i).acceleration * parameters_.general.dt; });
 }
 
 auto SimulationCPU::calculate_acceleration_all_pairs(usize body_idx) -> void {
   std::ranges::for_each(bodies_, [&](auto& b) {
     const auto direction {b.position - body(body_idx).position};
-    const auto distance {glm::dot(direction, direction) + eps * eps};
-    const auto acceleration {(G * b.mass) / (glm::pow(distance, 1.5f)) * direction};
+    const auto distance {glm::dot(direction, direction) + parameters_.general.eps * parameters_.general.eps};
+    const auto acceleration {(parameters_.general.G * b.mass) / (glm::pow(distance, 1.5f)) * direction};
 
     body(body_idx).acceleration += acceleration;
   });
@@ -197,10 +192,11 @@ auto SimulationCPU::calculate_acceleration_barnes_hut(usize node_idx, usize body
   }
 
   const auto direction {node(node_idx).center_of_mass - body(body_idx).position};
-  const auto distance {glm::length(direction) + eps * eps};
+  const auto distance {glm::length(direction) + parameters_.general.eps * parameters_.general.eps};
 
   if (node(node_idx).body_idx != -1 || (node(node_idx).size / distance < theta)) {
-    body(body_idx).acceleration += (G * node(node_idx).total_mass / glm::pow(distance, 3.0f)) * direction;
+    body(body_idx).acceleration +=
+        (parameters_.general.G * node(node_idx).total_mass / glm::pow(distance, 3.0f)) * direction;
     return;
   }
 

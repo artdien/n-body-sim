@@ -29,8 +29,10 @@ auto adjust_render_settings(rendering::Renderer* renderer, const simulation::Con
 } // namespace
 
 Menu::Menu(rendering::Renderer* renderer, std::unique_ptr<simulation::Simulation>* simulation,
+           simulation::SimulationParametersCPU* parameters_cpu, simulation::SimulationParametersGPU* parameters_gpu,
            simulation::Configuration* configuration, bool visible)
-    : renderer_ {renderer}, simulation_ {simulation}, configuration_ {configuration}, visible_ {visible} {
+    : renderer_ {renderer}, simulation_ {simulation}, parameters_cpu_ {parameters_cpu},
+      parameters_gpu_ {parameters_gpu}, configuration_ {configuration}, visible_ {visible} {
 
   ImGuiIO& io = ImGui::GetIO();
   io.IniFilename = nullptr;
@@ -53,8 +55,9 @@ auto Menu::display() -> void {
                CONFIGURATION_TYPE_DESCRIPTIONS.size());
 
   if (ImGui::Button("Apply Configuration")) {
-    *simulation_ = std::make_unique<simulation::Simulation>(std::in_place_type<simulation::SimulationGPU>,
-                                                            initialize_configuration(*configuration_));
+    *simulation_ =
+        std::make_unique<simulation::Simulation>(std::in_place_type<simulation::SimulationGPU>, *parameters_gpu_,
+                                                 initialize_configuration(parameters_gpu_->general.G, *configuration_));
     adjust_render_settings(renderer_, configuration_->type);
   }
 

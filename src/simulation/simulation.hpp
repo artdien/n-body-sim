@@ -6,11 +6,23 @@
 
 #include <glad/glad.h>
 
+#include "platform/types.hpp"
 #include "simulation/body.hpp"
 #include "simulation/octree.hpp"
 #include "simulation/thread_pool.hpp"
 
 namespace nbodysim::simulation {
+
+struct SimulationParameters {
+  /// Gravitational constant.
+  f32 G {6.6743e-11f};
+
+  /// Size of time step per simulation step.
+  f32 dt {60.0f};
+
+  /// Softening factor to avoid direct collision between bodies.
+  f32 eps {0.1f};
+};
 
 template <typename S>
 concept Simulatable = requires(S s, const S cs) {
@@ -28,12 +40,27 @@ concept Simulatable = requires(S s, const S cs) {
   { cs.bodies_count() } -> std::same_as<usize>;
 };
 
+struct SimulationParametersCPU {
+  /// General simulation parameters.
+  SimulationParameters general;
+
+  /// Flag whether to use the Barnes-Hut algorithm for simulation.
+  bool use_barnes_hut {true};
+
+  /// Threshold when to apply Barnes-Hut appoximation.
+  f32 theta {1.0f};
+
+  /// Number of threads to use for simulation.
+  usize thread_count {std::max(1u, std::thread::hardware_concurrency() - 1)};
+};
+
 class SimulationCPU {
 public:
   /// Creates an N-body simulation.
   ///
-  /// @param setup Initial state of bodies for simulation.
-  SimulationCPU(const std::vector<Body>& bodies);
+  /// @param parameters Parameters for simulation.
+  /// @param bodies Initial state of bodies for simulation.
+  SimulationCPU(const SimulationParametersCPU& parameters, const std::vector<Body>& bodies);
 
   SimulationCPU(const SimulationCPU&) = delete;
   SimulationCPU(SimulationCPU&&) = delete;
@@ -46,6 +73,7 @@ public:
   auto bodies_count() const -> usize;
 
 private:
+  SimulationParametersCPU parameters_;
   std::vector<Body> bodies_;
 
   GLuint buffer_id_;
@@ -55,7 +83,6 @@ private:
   OctreeNodePool node_pool_;
 
   ThreadPool thread_pool_;
-  usize num_threads_;
 
   auto construct_barnes_hut_tree() -> void;
   auto insert_octree_node(usize node_idx, usize body_idx) -> void;
@@ -72,12 +99,28 @@ private:
   }
 };
 
+struct SimulationParametersGPU {
+  /// General simulation parameters.
+  SimulationParameters general;
+
+  /// Number of work groups to dispatch on GPU for simulation.
+  /// Each work group calculates the simulation step in parallel for a number of bodies.
+  u32 dispatch_size {40u};
+
+  /// Tile size determines for how many bodies the simulation step is calculated in parallel within a work group.
+  /// If dispatch_size times tile_size is less than the number of bodies in the simulation,
+  /// the remaining bodies will be distributed across the work groups.
+  /// In this case some or all work groups will calculate more bodies than specified via the tile size.
+  u32 tile_size {256u};
+};
+
 class SimulationGPU {
 public:
   /// Creates an N-body simulation.
   ///
-  /// @param setup Initial state of bodies for simulation.
-  SimulationGPU(const std::vector<Body>& bodies);
+  /// @param parameters Parameters for simulation.
+  /// @param bodies Initial state of bodies for simulation.
+  SimulationGPU(const SimulationParametersGPU& parameters, const std::vector<Body>& bodies);
 
   SimulationGPU(const SimulationGPU&) = delete;
   SimulationGPU(SimulationGPU&&) = delete;
@@ -90,6 +133,8 @@ public:
   auto bodies_count() const -> usize;
 
 private:
+  SimulationParametersGPU parameters_;
+
   GLuint buffer_id_;
   std::span<Body> buffer_;
 

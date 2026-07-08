@@ -16,7 +16,7 @@ public:
   /// Creates a thread pool with a given capacity.
   ///
   /// @param capacity Number of threads to create in the thread pool.
-  ThreadPool(usize capacity = std::max(1u, std::thread::hardware_concurrency() - 1));
+  ThreadPool(usize capacity);
 
   ThreadPool(const ThreadPool&) = delete;
   ThreadPool(ThreadPool&&) = delete;

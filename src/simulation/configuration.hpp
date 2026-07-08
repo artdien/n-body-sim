@@ -17,9 +17,6 @@ struct Configuration {
   /// Type of configuration.
   ConfigurationType type {ConfigurationType::PLUMMER_N_BODY};
 
-  /// Gravitational constant.
-  f32 G {6.6743e-11f};
-
   /// Initial distance of bodies from origin.
   /// For Plummer model, this is the Plummer radius.
   f32 radius {1.0f};
@@ -35,7 +32,8 @@ struct Configuration {
 ///
 /// The number of initialized bodies depends on the configuration.
 ///
+/// @param G Gravitational constant.
 /// @param configuration Configuration for the initialized bodies.
-std::vector<Body> initialize_configuration(const Configuration& configuration);
+std::vector<Body> initialize_configuration(f32 G, const Configuration& configuration);
 
 } // namespace nbodysim::simulation

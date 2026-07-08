@@ -45,13 +45,15 @@ int main(int argc, char* argv[]) {
   const auto window_width {parse_cli_argument(argc, argv, "-width").value_or(1920u)};
   const auto window_height {parse_cli_argument(argc, argv, "-height").value_or(1080u)};
 
+  auto parameters_cpu {SimulationParametersCPU {}};
+  auto parameters_gpu {SimulationParametersGPU {}};
   auto configuration {Configuration {.type = ConfigurationType::PLUMMER_N_BODY, .count = 1000}};
-  auto bodies {initialize_configuration(configuration)};
+  auto bodies {initialize_configuration(parameters_gpu.general.G, configuration)};
 
   auto window {Window {window_width, window_height}};
   auto renderer {Renderer {window_width, window_height}};
-  auto simulation {std::make_unique<Simulation>(std::in_place_type<SimulationGPU>, bodies)};
-  auto menu {Menu {&renderer, &simulation, &configuration}};
+  auto simulation {std::make_unique<Simulation>(std::in_place_type<SimulationGPU>, parameters_gpu, bodies)};
+  auto menu {Menu {&renderer, &simulation, &parameters_cpu, &parameters_gpu, &configuration}};
 
   renderer.frustum_size = 100.0f;
   renderer.body_radius = 0.1f;

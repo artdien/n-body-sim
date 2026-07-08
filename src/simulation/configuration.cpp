@@ -136,15 +136,14 @@ std::vector<Body> initialize_plummer_configuration(f32 G, f32 radius, f32 mass, 
 
 } // namespace
 
-std::vector<Body> initialize_configuration(const Configuration& configuration) {
+std::vector<Body> initialize_configuration(f32 G, const Configuration& configuration) {
   switch (configuration.type) {
   case ConfigurationType::EULER_THREE_BODY:
-    return initialize_euler_configuration(configuration.G, configuration.radius, configuration.mass);
+    return initialize_euler_configuration(G, configuration.radius, configuration.mass);
   case ConfigurationType::LAGRANGE_THREE_BODY:
-    return initialize_lagrange_configuration(configuration.G, configuration.radius, configuration.mass);
+    return initialize_lagrange_configuration(G, configuration.radius, configuration.mass);
   case ConfigurationType::PLUMMER_N_BODY:
-    return initialize_plummer_configuration(configuration.G, configuration.radius, configuration.mass,
-                                            configuration.count);
+    return initialize_plummer_configuration(G, configuration.radius, configuration.mass, configuration.count);
   }
 }
 
