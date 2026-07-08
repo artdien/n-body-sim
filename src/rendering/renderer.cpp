@@ -43,9 +43,9 @@ Renderer::~Renderer() {
   glDeleteSync(fence_);
 }
 
-auto Renderer::render(GLuint buffer_id, usize count) -> void {
+auto Renderer::render(GLuint buffer_id, usize count, const RenderingSettings& settings) -> void {
   const auto aspect_ratio {static_cast<f32>(width_) / height_};
-  const auto frustum_size_half {0.5f * frustum_size};
+  const auto frustum_size_half {0.5f * settings.frustum_size};
   const auto projection {glm::ortho(-frustum_size_half * aspect_ratio, frustum_size_half * aspect_ratio,
                                     -frustum_size_half, frustum_size_half)};
 
@@ -61,7 +61,7 @@ auto Renderer::render(GLuint buffer_id, usize count) -> void {
 
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, buffer_id);
 
-  glUniform1f(glGetUniformLocation(shader_program_id_, "body_radius"), body_radius);
+  glUniform1f(glGetUniformLocation(shader_program_id_, "body_radius"), settings.body_radius);
   glUniformMatrix4fv(glGetUniformLocation(shader_program_id_, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
   glDrawArraysInstanced(GL_TRIANGLES, 0, 6, count);

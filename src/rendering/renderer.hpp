@@ -7,6 +7,14 @@
 
 namespace nbodysim::rendering {
 
+struct RenderingSettings {
+  /// Radius of each body.
+  f32 body_radius {1.0f};
+
+  /// Diameter of view frustum.
+  f32 frustum_size {10.0f};
+};
+
 class Renderer {
 public:
   /// Constructs a renderer.
@@ -21,20 +29,13 @@ public:
   auto operator=(Renderer&&) -> Renderer& = delete;
   ~Renderer();
 
-  /// Radius of each body.
-  /// Size is specified relative to view frustum size.
-  f32 body_radius {1.0f};
-
-  /// Diameter of view frustum.
-  f32 frustum_size {10.0f};
-
   /// Renders the given SSBO containing bodies to the render target.
   ///
   /// This method must be called within an existing OpenGL context.
   ///
   /// @param buffer_id ID for the SSBO to be rendered.
   /// @param count Number of bodies in the SSBO.
-  auto render(GLuint buffer_id, usize count) -> void;
+  auto render(GLuint buffer_id, usize count, const RenderingSettings& settings) -> void;
 
   /// Clears the current render target.
   ///

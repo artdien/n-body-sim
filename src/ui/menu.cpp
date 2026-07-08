@@ -19,19 +19,19 @@ constexpr auto BODY_RADIUS_MAX {10.0f};
 constexpr auto FRUSTUM_SIZE_MIN {0.01f};
 constexpr auto FRUSTUM_SIZE_MAX {100.0f};
 
-auto adjust_render_settings(rendering::Renderer* renderer, const simulation::ConfigurationType& type) -> void {
+auto adjust_render_settings(rendering::RenderingSettings* settings, const simulation::ConfigurationType& type) -> void {
   // Plummer model creates lots of bodies that are more spread out.
   // The frustum size is therefore larger for this setup.
-  renderer->frustum_size = type == simulation::ConfigurationType::PLUMMER_N_BODY ? 100.0f : 3.0f;
-  renderer->body_radius = 0.1f;
+  settings->frustum_size = type == simulation::ConfigurationType::PLUMMER_N_BODY ? 100.0f : 3.0f;
+  settings->body_radius = 0.1f;
 }
 
 } // namespace
 
-Menu::Menu(rendering::Renderer* renderer, std::unique_ptr<simulation::Simulation>* simulation,
-           simulation::SimulationParametersCPU* parameters_cpu, simulation::SimulationParametersGPU* parameters_gpu,
-           simulation::Configuration* configuration, bool visible)
-    : renderer_ {renderer}, simulation_ {simulation}, parameters_cpu_ {parameters_cpu},
+Menu::Menu(std::unique_ptr<simulation::Simulation>* simulation, simulation::SimulationParametersCPU* parameters_cpu,
+           simulation::SimulationParametersGPU* parameters_gpu, simulation::Configuration* configuration,
+           rendering::RenderingSettings* settings, bool visible)
+    : simulation_ {simulation}, settings_ {settings}, parameters_cpu_ {parameters_cpu},
       parameters_gpu_ {parameters_gpu}, configuration_ {configuration}, visible_ {visible} {
 
   ImGuiIO& io = ImGui::GetIO();
@@ -58,13 +58,13 @@ auto Menu::display() -> void {
     *simulation_ =
         std::make_unique<simulation::Simulation>(std::in_place_type<simulation::SimulationGPU>, *parameters_gpu_,
                                                  initialize_configuration(parameters_gpu_->general.G, *configuration_));
-    adjust_render_settings(renderer_, configuration_->type);
+    adjust_render_settings(settings_, configuration_->type);
   }
 
   ImGui::SeparatorText("Visualization");
 
-  ImGui::SliderScalar("Body Radius", ImGuiDataType_Float, &renderer_->body_radius, &BODY_RADIUS_MIN, &BODY_RADIUS_MAX);
-  ImGui::SliderScalar("Frustum Size", ImGuiDataType_Float, &renderer_->frustum_size, &FRUSTUM_SIZE_MIN,
+  ImGui::SliderScalar("Body Radius", ImGuiDataType_Float, &settings_->body_radius, &BODY_RADIUS_MIN, &BODY_RADIUS_MAX);
+  ImGui::SliderScalar("Frustum Size", ImGuiDataType_Float, &settings_->frustum_size, &FRUSTUM_SIZE_MIN,
                       &FRUSTUM_SIZE_MAX);
 
   ImGui::End();

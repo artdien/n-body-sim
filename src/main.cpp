@@ -23,7 +23,7 @@ namespace {
 constexpr auto WINDOW_TITLE {std::string_view {"N-Body Simulation"}};
 constexpr auto STEP_UPDATE_INTERVAL_MILLISECONDS {1000.0 / 60.0};
 
-auto process_input(Menu* menu, Renderer* renderer, Window* window, const MouseInput& mouse,
+auto process_input(Menu* menu, Window* window, RenderingSettings* settings, const MouseInput& mouse,
                    const KeyboardInput& keyboard) -> void {
   if (keyboard.pressed_key == "m") {
     menu->toggle();
@@ -32,10 +32,10 @@ auto process_input(Menu* menu, Renderer* renderer, Window* window, const MouseIn
     window->close();
   }
   if (mouse.scroll_direction == ScrollDirection::UP) {
-    renderer->frustum_size -= 1.0f;
+    settings->frustum_size -= 1.0f;
   }
   if (mouse.scroll_direction == ScrollDirection::DOWN) {
-    renderer->frustum_size += 1.0f;
+    settings->frustum_size += 1.0f;
   }
 }
 
@@ -45,6 +45,7 @@ int main(int argc, char* argv[]) {
   const auto window_width {parse_cli_argument(argc, argv, "-width").value_or(1920u)};
   const auto window_height {parse_cli_argument(argc, argv, "-height").value_or(1080u)};
 
+  auto settings {RenderingSettings {.body_radius = 0.1f, .frustum_size = 100.0f}};
   auto parameters_cpu {SimulationParametersCPU {}};
   auto parameters_gpu {SimulationParametersGPU {}};
   auto configuration {Configuration {.type = ConfigurationType::PLUMMER_N_BODY, .count = 1000}};
@@ -53,10 +54,7 @@ int main(int argc, char* argv[]) {
   auto window {Window {window_width, window_height}};
   auto renderer {Renderer {window_width, window_height}};
   auto simulation {std::make_unique<Simulation>(std::in_place_type<SimulationGPU>, parameters_gpu, bodies)};
-  auto menu {Menu {&renderer, &simulation, &parameters_cpu, &parameters_gpu, &configuration}};
-
-  renderer.frustum_size = 100.0f;
-  renderer.body_radius = 0.1f;
+  auto menu {Menu {&simulation, &parameters_cpu, &parameters_gpu, &configuration, &settings}};
 
   auto threshold {0.0};
 
@@ -65,7 +63,7 @@ int main(int argc, char* argv[]) {
 
     window.set_title(std::format("{} ({:.2f}ms)", WINDOW_TITLE, elapsed_time));
 
-    process_input(&menu, &renderer, &window, mouse, keyboard);
+    process_input(&menu, &window, &settings, mouse, keyboard);
 
     while (threshold >= STEP_UPDATE_INTERVAL_MILLISECONDS) {
       std::visit([](Simulatable auto& s) { s.step(); }, *simulation);
@@ -74,7 +72,7 @@ int main(int argc, char* argv[]) {
 
     renderer.clear();
     renderer.render(std::visit([](Simulatable auto& s) { return s.buffer_id(); }, *simulation),
-                    std::visit([](Simulatable auto& s) { return s.bodies_count(); }, *simulation));
+                    std::visit([](Simulatable auto& s) { return s.bodies_count(); }, *simulation), settings);
 
     menu.display();
   });

@@ -10,27 +10,17 @@
 
 namespace nbodysim::ui {
 
-// struct SetupMenu {
-//   simulation::ConfigurationType* n_body_setup {nullptr};
-//   std::function<void(simulation::Configuration)> on_n_body_setup_changed {};
-// };
-//
-// struct VisualizationMenu {
-//   f32* body_radius {nullptr};
-//   f32* frustum_size {nullptr};
-// };
-
 class Menu {
 public:
   /// Constructs a menu.
   ///
-  /// @param visualization_menu Fields for menu section "Visualization".
-  /// @param setup_menu Fields for menu section "Visualization".
+  /// All parameters except the visible flag can be directly changed via the menu,
+  /// hence they are passed as pointers.
+  ///
   /// @param visible Flag to denote whether menu is currently visible or not.
-  /// @note Fields with default values in menu section structs are not displayed.
-  Menu(rendering::Renderer* renderer, std::unique_ptr<simulation::Simulation>* simulation,
-       simulation::SimulationParametersCPU* parameters_cpu, simulation::SimulationParametersGPU* parameters_gpu,
-       simulation::Configuration* configuration, bool visible = false);
+  Menu(std::unique_ptr<simulation::Simulation>* simulation, simulation::SimulationParametersCPU* parameters_cpu,
+       simulation::SimulationParametersGPU* parameters_gpu, simulation::Configuration* configuration,
+       rendering::RenderingSettings* settings, bool visible = false);
 
   Menu(const Menu&) = delete;
   Menu(Menu&&) = delete;
@@ -49,8 +39,8 @@ public:
   auto toggle() -> void;
 
 private:
-  rendering::Renderer* renderer_;
   std::unique_ptr<simulation::Simulation>* simulation_;
+  rendering::RenderingSettings* settings_;
   simulation::SimulationParametersCPU* parameters_cpu_;
   simulation::SimulationParametersGPU* parameters_gpu_;
   simulation::Configuration* configuration_;
