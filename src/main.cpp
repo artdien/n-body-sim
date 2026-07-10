@@ -33,6 +33,7 @@ auto process_input(Menu* menu, Window* window, RenderingSettings* settings, cons
   }
   if (mouse.scroll_direction == ScrollDirection::UP) {
     settings->frustum_size -= 1.0f;
+    settings->frustum_size = std::max(settings->frustum_size, 1.0f);
   }
   if (mouse.scroll_direction == ScrollDirection::DOWN) {
     settings->frustum_size += 1.0f;

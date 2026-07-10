@@ -102,7 +102,7 @@ auto Menu::display() -> void {
   ImGui::SeparatorText("Rendering");
 
   input_field_f32("Body Radius", &settings_->body_radius, 0.1f);
-  input_field_f32("Frustum Size", &settings_->frustum_size, 0.1f);
+  input_field_f32("Frustum Size", &settings_->frustum_size, 1.0f);
 
   // --- GENERAL SIMULATION SECTION ---
 
