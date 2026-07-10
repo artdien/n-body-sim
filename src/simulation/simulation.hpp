@@ -51,7 +51,7 @@ struct SimulationParametersCPU {
   f32 theta {1.0f};
 
   /// Number of threads to use for simulation.
-  usize thread_count {std::max(1u, std::thread::hardware_concurrency() - 1)};
+  u32 thread_count {std::max(1u, std::thread::hardware_concurrency() - 1)};
 };
 
 class SimulationCPU {

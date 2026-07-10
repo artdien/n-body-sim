@@ -14,12 +14,60 @@ namespace {
 
 constexpr auto CONFIGURATION_TYPE_DESCRIPTIONS {std::array {"Euler (3-Body)", "Lagrange (3-Body)", "Plummer (N-Body)"}};
 
-constexpr auto BODY_RADIUS_MIN {0.01f};
-constexpr auto BODY_RADIUS_MAX {10.0f};
-constexpr auto FRUSTUM_SIZE_MIN {0.01f};
-constexpr auto FRUSTUM_SIZE_MAX {100.0f};
+enum class SimulationMode {
+  CPU,
+  GPU,
+};
 
-auto adjust_render_settings(rendering::RenderingSettings* settings, const simulation::ConfigurationType& type) -> void {
+auto simulation_mode {SimulationMode::GPU};
+
+bool input_field_f32(const char* label, f32* value, f32 min = 0.0f, const char* format = "%.3f") {
+  if (ImGui::InputScalar(label, ImGuiDataType_Float, value, nullptr, nullptr, format)) {
+    if (*value < min) {
+      *value = min;
+    }
+    return true;
+  }
+  return false;
+}
+
+bool input_field_u32(const char* label, u32* value, u32 min = 0u) {
+  // Using data type ImGuiDataType_U32 does not prevent entering negative values,
+  // they will instead be casted to unsigned values and thus wrapped around.
+  // Thus, we use a temporary signed value to work around this.
+  if (auto temp {static_cast<i32>(*value)}; ImGui::InputScalar(label, ImGuiDataType_S32, &temp)) {
+    if (temp < 0) {
+      temp = 0;
+    }
+    if (temp < static_cast<i32>(min)) {
+      temp = static_cast<i32>(min);
+    }
+    *value = static_cast<u32>(temp);
+    return true;
+  }
+  return false;
+}
+
+void center_button(const char* label) {
+  auto menu_width {ImGui::GetContentRegionAvail().x};
+  auto button_width {ImGui::CalcTextSize(label).x + 2.0f * ImGui::GetStyle().FramePadding.x};
+
+  ImGui::SetCursorPosX(0.5f * (menu_width - button_width));
+}
+
+template <std::convertible_to<const char*>... Args>
+requires(sizeof...(Args) > 0)
+void center_radio_buttons(Args... labels) {
+  auto menu_width {ImGui::GetContentRegionAvail().x};
+  auto radio_buttons_width {0.0f};
+  ((radio_buttons_width += ImGui::CalcTextSize(labels).x + 25.0f), ...);
+  radio_buttons_width += ImGui::GetStyle().ItemSpacing.x;
+
+  ImGui::SetCursorPosX(0.5f * (menu_width - radio_buttons_width));
+}
+
+auto adjust_rendering_settings(rendering::RenderingSettings* settings, const simulation::ConfigurationType& type)
+    -> void {
   // Plummer model creates lots of bodies that are more spread out.
   // The frustum size is therefore larger for this setup.
   settings->frustum_size = type == simulation::ConfigurationType::PLUMMER_N_BODY ? 100.0f : 3.0f;
@@ -31,8 +79,8 @@ auto adjust_render_settings(rendering::RenderingSettings* settings, const simula
 Menu::Menu(std::unique_ptr<simulation::Simulation>* simulation, simulation::SimulationParametersCPU* parameters_cpu,
            simulation::SimulationParametersGPU* parameters_gpu, simulation::Configuration* configuration,
            rendering::RenderingSettings* settings, bool visible)
-    : simulation_ {simulation}, settings_ {settings}, parameters_cpu_ {parameters_cpu},
-      parameters_gpu_ {parameters_gpu}, configuration_ {configuration}, visible_ {visible} {
+    : simulation_ {simulation}, parameters_cpu_ {parameters_cpu}, parameters_gpu_ {parameters_gpu},
+      configuration_ {configuration}, settings_ {settings}, visible_ {visible} {
 
   ImGuiIO& io = ImGui::GetIO();
   io.IniFilename = nullptr;
@@ -49,23 +97,70 @@ auto Menu::display() -> void {
 
   ImGui::Begin("Menu", &visible_, ImGuiWindowFlags_AlwaysAutoResize);
 
-  ImGui::SeparatorText("N-Body Setup");
+  // --- RENDERING SECTION ---
 
-  ImGui::Combo("N-Body Setup", reinterpret_cast<i32*>(&configuration_->type), CONFIGURATION_TYPE_DESCRIPTIONS.data(),
-               CONFIGURATION_TYPE_DESCRIPTIONS.size());
+  ImGui::SeparatorText("Rendering");
 
-  if (ImGui::Button("Apply Configuration")) {
-    *simulation_ =
-        std::make_unique<simulation::Simulation>(std::in_place_type<simulation::SimulationGPU>, *parameters_gpu_,
-                                                 initialize_configuration(parameters_gpu_->general.G, *configuration_));
-    adjust_render_settings(settings_, configuration_->type);
+  input_field_f32("Body Radius", &settings_->body_radius, 0.1f);
+  input_field_f32("Frustum Size", &settings_->frustum_size, 0.1f);
+
+  // --- GENERAL SIMULATION SECTION ---
+
+  ImGui::SeparatorText("Simulation (General)");
+
+  center_radio_buttons("CPU", "GPU");
+  ImGui::RadioButton("CPU", reinterpret_cast<i32*>(&simulation_mode), 0);
+  ImGui::SameLine();
+  ImGui::RadioButton("GPU", reinterpret_cast<i32*>(&simulation_mode), 1);
+
+  ImGui::Combo("Configuration Type", reinterpret_cast<i32*>(&configuration_->type),
+               CONFIGURATION_TYPE_DESCRIPTIONS.data(), CONFIGURATION_TYPE_DESCRIPTIONS.size());
+  input_field_f32("Configuration Radius", &configuration_->radius, 0.1f);
+  input_field_f32("Mass Of Each Body", &configuration_->mass, 0.1f);
+  input_field_u32("Number Of Bodies", &configuration_->count, 1u);
+
+  // --- SPECIFIC SIMULATION SECTION ---
+
+  if (simulation_mode == SimulationMode::CPU) {
+    input_field_f32("Gravitational Constant", &parameters_cpu_->general.G, 0.001f, "%.3e");
+    input_field_f32("Time Step", &parameters_cpu_->general.dt, 0.001f);
+    input_field_f32("Softening Factor", &parameters_cpu_->general.eps, 0.0f);
+
+    ImGui::SeparatorText("Simulation (CPU Specific)");
+
+    ImGui::Checkbox("Use Barnes-Hut", &parameters_cpu_->use_barnes_hut);
+    if (parameters_cpu_->use_barnes_hut) {
+      input_field_f32("Theta", &parameters_cpu_->theta, 0.0f);
+    }
+    input_field_u32("Thread Count", &parameters_cpu_->thread_count, 1u);
   }
 
-  ImGui::SeparatorText("Visualization");
+  if (simulation_mode == SimulationMode::GPU) {
+    input_field_f32("Gravitational Constant", &parameters_gpu_->general.G, 0.001f, "%.3e");
+    input_field_f32("Time Step", &parameters_gpu_->general.dt, 0.001f);
+    input_field_f32("Softening Factor", &parameters_gpu_->general.eps, 0.0f);
 
-  ImGui::SliderScalar("Body Radius", ImGuiDataType_Float, &settings_->body_radius, &BODY_RADIUS_MIN, &BODY_RADIUS_MAX);
-  ImGui::SliderScalar("Frustum Size", ImGuiDataType_Float, &settings_->frustum_size, &FRUSTUM_SIZE_MIN,
-                      &FRUSTUM_SIZE_MAX);
+    ImGui::SeparatorText("Simulation (GPU Specific)");
+
+    input_field_u32("Dispatch Size", &parameters_gpu_->dispatch_size, 1u);
+    input_field_u32("Tile Size", &parameters_gpu_->tile_size, 1u);
+  }
+
+  ImGui::Dummy(ImVec2(0.0f, 10.0f));
+  center_button("Create New Simulation");
+  if (ImGui::Button("Create New Simulation")) {
+    if (simulation_mode == SimulationMode::CPU) {
+      *simulation_ = std::make_unique<simulation::Simulation>(
+          std::in_place_type<simulation::SimulationCPU>, *parameters_cpu_,
+          initialize_configuration(parameters_cpu_->general.G, *configuration_));
+    } else if (simulation_mode == SimulationMode::GPU) {
+      *simulation_ = std::make_unique<simulation::Simulation>(
+          std::in_place_type<simulation::SimulationGPU>, *parameters_gpu_,
+          initialize_configuration(parameters_gpu_->general.G, *configuration_));
+    }
+
+    adjust_rendering_settings(settings_, configuration_->type);
+  }
 
   ImGui::End();
 

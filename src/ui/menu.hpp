@@ -40,10 +40,10 @@ public:
 
 private:
   std::unique_ptr<simulation::Simulation>* simulation_;
-  rendering::RenderingSettings* settings_;
   simulation::SimulationParametersCPU* parameters_cpu_;
   simulation::SimulationParametersGPU* parameters_gpu_;
   simulation::Configuration* configuration_;
+  rendering::RenderingSettings* settings_;
   bool visible_;
 };
 
