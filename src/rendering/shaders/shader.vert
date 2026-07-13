@@ -19,6 +19,7 @@ out vec2 position;
 out vec4 color;
 
 uniform float body_radius;
+uniform mat4 view;
 uniform mat4 projection;
 
 const vec2[6] quad = {
@@ -32,7 +33,7 @@ void main() {
     position = quad[gl_VertexID];
     color = body.color;
 
-    gl_Position = projection * vec4(body_radius * position + body.position.xy, 0.0, 1.0);
+    gl_Position = projection * view * vec4(body_radius * position + body.position.xy, 0.0, 1.0);
 }
 
 )"

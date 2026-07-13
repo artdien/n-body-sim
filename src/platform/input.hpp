@@ -3,6 +3,8 @@
 #include <optional>
 #include <string>
 
+#include <glm/vec2.hpp>
+
 namespace nbodysim::platform {
 
 enum class ScrollDirection {
@@ -13,6 +15,8 @@ enum class ScrollDirection {
 
 struct MouseInput {
   ScrollDirection scroll_direction {ScrollDirection::NONE};
+  bool dragging {false};
+  glm::vec2 delta {0.0};
 };
 
 struct KeyboardInput {

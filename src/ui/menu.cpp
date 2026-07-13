@@ -103,6 +103,7 @@ auto Menu::display() -> void {
 
   input_field_f32("Body Radius", &settings_->body_radius, 0.1f);
   input_field_f32("Frustum Size", &settings_->frustum_size, 1.0f);
+  ImGui::InputFloat2("Frustum Origin", &settings_->frustum_origin[0]);
 
   // --- GENERAL SIMULATION SECTION ---
 

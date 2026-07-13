@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glad/glad.h>
+#include <glm/vec2.hpp>
 #include <glm/vec4.hpp>
 
 #include "platform/types.hpp"
@@ -13,6 +14,9 @@ struct RenderingSettings {
 
   /// Diameter of view frustum.
   f32 frustum_size {10.0f};
+
+  /// Origin of view frustum.
+  glm::vec2 frustum_origin {0.0f};
 };
 
 class Renderer {

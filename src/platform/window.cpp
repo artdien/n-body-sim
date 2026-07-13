@@ -15,7 +15,41 @@ namespace nbodysim::platform {
 
 namespace {
 
-void scroll_callback([[maybe_unused]] GLFWwindow* window, [[maybe_unused]] double offset_x, double offset_y) {
+auto determine_mouse_position(GLFWwindow* window, u32 width, u32 height, const glm::vec2& last_mouse_position)
+    -> glm::vec2 {
+  static auto first_mouse_click {true};
+
+  if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+    auto mouse_position_x {0.0};
+    auto mouse_position_y {0.0};
+    glfwGetCursorPos(window, &mouse_position_x, &mouse_position_y);
+
+    const auto current_mouse_position {glm::vec2 {mouse_position_x, mouse_position_y}};
+
+    if (first_mouse_click) {
+      first_mouse_click = false;
+      return current_mouse_position;
+    }
+
+    auto delta {current_mouse_position - last_mouse_position};
+    delta.x /= static_cast<f32>(width);
+    delta.y /= static_cast<f32>(height);
+    delta.y *= -1.0f; // negative sign since GLFW coordinate system has downward pointing y-axis
+
+    add_mouse_input_event({.dragging = true, .delta = delta});
+
+    return current_mouse_position;
+  }
+
+  if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE) {
+    first_mouse_click = true;
+    return last_mouse_position;
+  }
+
+  return last_mouse_position;
+}
+
+auto scroll_callback([[maybe_unused]] GLFWwindow* window, [[maybe_unused]] double offset_x, double offset_y) -> void {
   if (offset_y > 0) {
     add_mouse_input_event({.scroll_direction = ScrollDirection::UP});
   }
@@ -25,8 +59,8 @@ void scroll_callback([[maybe_unused]] GLFWwindow* window, [[maybe_unused]] doubl
   }
 }
 
-void key_callback([[maybe_unused]] GLFWwindow* window, int key, int scan_code, int action,
-                  [[maybe_unused]] int modifiers) {
+auto key_callback([[maybe_unused]] GLFWwindow* window, int key, int scan_code, int action,
+                  [[maybe_unused]] int modifiers) -> void {
   if (action == GLFW_PRESS) {
     if (key == GLFW_KEY_ESCAPE) {
       add_keyboard_input_event({.pressed_key = std::string {"esc"}});
@@ -94,12 +128,15 @@ Window::~Window() {
 
 auto Window::open(std::function<void(MouseInput, KeyboardInput, double)> execute_per_frame) -> void {
   auto previous_time {std::chrono::steady_clock::now()};
+  auto mouse_position {glm::vec2 {0.0f}};
 
   while (!glfwWindowShouldClose(window_)) {
     const auto current_time {std::chrono::steady_clock::now()};
     const auto elapsed_time {std::chrono::round<std::chrono::microseconds>(current_time - previous_time).count() /
                              1000.0};
     previous_time = current_time;
+
+    mouse_position = determine_mouse_position(window_, width_, height_, mouse_position);
 
     auto mouse_input {get_mouse_input_event()};
     if (mouse_input.has_value() && ImGui::GetIO().WantCaptureMouse) {

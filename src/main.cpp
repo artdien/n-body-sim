@@ -38,6 +38,9 @@ auto process_input(Menu* menu, Window* window, RenderingSettings* settings, cons
   if (mouse.scroll_direction == ScrollDirection::DOWN) {
     settings->frustum_size += 1.0f;
   }
+  if (mouse.dragging) {
+    settings->frustum_origin += settings->frustum_size * mouse.delta;
+  }
 }
 
 } // namespace

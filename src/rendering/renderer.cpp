@@ -46,6 +46,8 @@ Renderer::~Renderer() {
 auto Renderer::render(GLuint buffer_id, usize count, const RenderingSettings& settings) -> void {
   const auto aspect_ratio {static_cast<f32>(width_) / height_};
   const auto frustum_size_half {0.5f * settings.frustum_size};
+
+  const auto view = glm::translate(glm::mat4(1.0f), glm::vec3(settings.frustum_origin, 0.0f));
   const auto projection {glm::ortho(-frustum_size_half * aspect_ratio, frustum_size_half * aspect_ratio,
                                     -frustum_size_half, frustum_size_half)};
 
@@ -62,6 +64,7 @@ auto Renderer::render(GLuint buffer_id, usize count, const RenderingSettings& se
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, buffer_id);
 
   glUniform1f(glGetUniformLocation(shader_program_id_, "body_radius"), settings.body_radius);
+  glUniformMatrix4fv(glGetUniformLocation(shader_program_id_, "view"), 1, GL_FALSE, glm::value_ptr(view));
   glUniformMatrix4fv(glGetUniformLocation(shader_program_id_, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
   glDrawArraysInstanced(GL_TRIANGLES, 0, 6, count);
