@@ -24,11 +24,15 @@ void main() {
   uint stride = gl_NumWorkGroups.x * gl_WorkGroupSize.x;
 
   for (uint s = gl_GlobalInvocationID.x; s < N; s += stride) {
-    vec3 velocity = bodies[s].velocity;
-    vec3 acceleration = bodies[s].acceleration;
+    Body body = bodies[s];
 
-    bodies[s].position += velocity * dt + 0.5 * acceleration * dt * dt;
-    bodies[s].velocity += 0.5 * acceleration * dt;
+    vec3 velocity = body.velocity;
+    vec3 acceleration = body.acceleration;
+
+    body.position += velocity * dt + 0.5 * acceleration * dt * dt;
+    body.velocity += 0.5 * acceleration * dt;
+
+    bodies[s] = body;
   }
 }
 

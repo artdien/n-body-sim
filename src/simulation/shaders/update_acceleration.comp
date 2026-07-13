@@ -36,28 +36,36 @@ void main() {
   uint stride = gl_NumWorkGroups.x * gl_WorkGroupSize.x;
 
   for (uint s = gl_GlobalInvocationID.x; s < N; s += stride) {
-    vec3 position = bodies[s].position;
+    Body body = bodies[s];
+
+    vec3 position = body.position;
     vec3 acceleration = vec3(0.0);
 
-    for (int tile = 0; tile < gl_NumWorkGroups.x; ++tile) {
-      uint idx = gl_LocalInvocationID.x + tile * gl_WorkGroupSize.x;
-      if (idx >= N) {
-        continue;
-      }
+    for (uint tile_offset = 0; tile_offset < N; tile_offset += gl_WorkGroupSize.x) {
+      uint idx = gl_LocalInvocationID.x + tile_offset;
+      Body body_cached = bodies[idx];
 
-      cache[gl_LocalInvocationID.x] = vec4(bodies[idx].position, bodies[idx].mass);
+      if (idx < N) {
+        cache[gl_LocalInvocationID.x] = vec4(body_cached.position, body_cached.mass);
+      } else {
+        // Pad memory for "residual" computations in case the tile size is not a multiple of the number of bodies.
+        cache[gl_LocalInvocationID.x] = vec4(0.0, 0.0, 0.0, 0.0);
+      }
 
       barrier();
 
       for (int i = 0; i < gl_WorkGroupSize.x; ++i) {
-        acceleration = calculate_acceleration(acceleration, position, cache[i].xyz, cache[i].w);
+        vec4 cache_entry = cache[i];
+        acceleration = calculate_acceleration(acceleration, position, cache_entry.xyz, cache_entry.w);
       }
 
       barrier();
     }
 
-    bodies[s].acceleration = acceleration;
-    bodies[s].velocity += 0.5 * acceleration * dt;
+    body.acceleration = acceleration;
+    body.velocity += 0.5 * acceleration * dt;
+
+    bodies[s] = body;
   }
 }
 

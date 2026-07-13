@@ -29,13 +29,14 @@ SimulationGPU::SimulationGPU(const SimulationParametersGPU& parameters, const st
     : parameters_ {parameters}, bodies_count_ {bodies.size()} {
   const auto update_position_shader {
       utils::replace_all(UPDATE_POSITION_SHADER, TILE_SIZE_REPLACE_TEXT, std::format("{}", parameters_.tile_size))};
-  const auto update_shader_id {utils::compile_shader(GL_COMPUTE_SHADER, update_position_shader.data())};
-  update_position_program_id_ = utils::link_shaders(update_shader_id);
+  const auto update_position_shader_id {utils::compile_shader(GL_COMPUTE_SHADER, update_position_shader.data())};
+  update_position_program_id_ = utils::link_shaders(update_position_shader_id);
 
   const auto update_acceleration_shader {
       utils::replace_all(UPDATE_ACCELERATION_SHADER, TILE_SIZE_REPLACE_TEXT, std::format("{}", parameters_.tile_size))};
-  const auto force_shader_id {utils::compile_shader(GL_COMPUTE_SHADER, update_acceleration_shader.data())};
-  update_acceleration_program_id_ = utils::link_shaders(force_shader_id);
+  const auto update_acceleration_shader_id {
+      utils::compile_shader(GL_COMPUTE_SHADER, update_acceleration_shader.data())};
+  update_acceleration_program_id_ = utils::link_shaders(update_acceleration_shader_id);
 
   const auto flags {GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT};
 
@@ -60,7 +61,6 @@ auto SimulationGPU::step() -> void {
   glUniform1f(glGetUniformLocation(update_position_program_id_, "dt"), parameters_.general.dt);
 
   glDispatchCompute(parameters_.dispatch_size, 1, 1);
-
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
   glUseProgram(update_acceleration_program_id_);
@@ -70,7 +70,6 @@ auto SimulationGPU::step() -> void {
   glUniform1f(glGetUniformLocation(update_acceleration_program_id_, "eps"), parameters_.general.eps);
 
   glDispatchCompute(parameters_.dispatch_size, 1, 1);
-
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 }
 
