@@ -21,7 +21,6 @@ using namespace nbodysim::utils;
 namespace {
 
 constexpr auto WINDOW_TITLE {std::string_view {"N-Body Simulation"}};
-constexpr auto STEP_UPDATE_INTERVAL_MILLISECONDS {1000.0 / 60.0};
 
 auto process_input(Menu* menu, Window* window, RenderingSettings* settings, const MouseInput& mouse,
                    const KeyboardInput& keyboard) -> void {
@@ -60,19 +59,12 @@ int main(int argc, char* argv[]) {
   auto simulation {std::make_unique<Simulation>(std::in_place_type<SimulationCPU>, parameters_cpu, bodies)};
   auto menu {Menu {&simulation, &parameters_cpu, &parameters_gpu, &configuration, &settings}};
 
-  auto threshold {0.0};
-
   window.open([&](MouseInput mouse, KeyboardInput keyboard, double elapsed_time) {
-    threshold += elapsed_time;
-
     window.set_title(std::format("{} ({:.2f}ms)", WINDOW_TITLE, elapsed_time));
 
     process_input(&menu, &window, &settings, mouse, keyboard);
 
-    while (threshold >= STEP_UPDATE_INTERVAL_MILLISECONDS) {
-      std::visit([](Simulatable auto& s) { s.step(); }, *simulation);
-      threshold -= STEP_UPDATE_INTERVAL_MILLISECONDS;
-    }
+    std::visit([](Simulatable auto& s) { s.step(); }, *simulation);
 
     renderer.clear();
     renderer.render(std::visit([](Simulatable auto& s) { return s.buffer_id(); }, *simulation),
