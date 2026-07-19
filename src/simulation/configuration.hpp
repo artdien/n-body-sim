@@ -19,7 +19,7 @@ struct Configuration {
 
   /// Initial distance of bodies from origin.
   /// For Plummer model, this is the Plummer radius.
-  f32 radius {1.0f};
+  f32 radius {100.0f};
 
   /// Mass of each body in the configuration.
   f32 mass {1.0f};

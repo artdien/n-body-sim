@@ -15,13 +15,13 @@ namespace nbodysim::simulation {
 
 struct SimulationParameters {
   /// Gravitational constant.
-  f32 G {6.6743e-11f};
+  f32 G {1.0f};
 
   /// Size of time step per simulation step.
-  f32 dt {60.0f};
+  f32 dt {0.01f};
 
   /// Softening factor to avoid direct collision between bodies.
-  f32 eps {0.1f};
+  f32 eps {0.01f};
 };
 
 template <typename S>
@@ -48,7 +48,7 @@ struct SimulationParametersCPU {
   bool use_barnes_hut {true};
 
   /// Threshold when to apply Barnes-Hut appoximation.
-  f32 theta {1.0f};
+  f32 theta {0.5f};
 
   /// Number of threads to use for simulation.
   u32 thread_count {std::max(1u, std::thread::hardware_concurrency() - 1)};
@@ -105,13 +105,13 @@ struct SimulationParametersGPU {
 
   /// Number of work groups to dispatch on GPU for simulation.
   /// Each work group calculates the simulation step in parallel for a number of bodies.
-  u32 dispatch_size {40u};
+  u32 dispatch_size {8u};
 
   /// Tile size determines for how many bodies the simulation step is calculated in parallel within a work group.
   /// If dispatch_size times tile_size is less than the number of bodies in the simulation,
   /// the remaining bodies will be distributed across the work groups.
   /// In this case some or all work groups will calculate more bodies than specified via the tile size.
-  u32 tile_size {256u};
+  u32 tile_size {128u};
 };
 
 class SimulationGPU {

@@ -32,11 +32,11 @@ auto process_input(Menu* menu, Window* window, RenderingSettings* settings, cons
     window->close();
   }
   if (mouse.scroll_direction == ScrollDirection::UP) {
-    settings->frustum_size -= 1.0f;
+    settings->frustum_size -= 0.1f * settings->frustum_size;
     settings->frustum_size = std::max(settings->frustum_size, 1.0f);
   }
   if (mouse.scroll_direction == ScrollDirection::DOWN) {
-    settings->frustum_size += 1.0f;
+    settings->frustum_size += 0.1f * settings->frustum_size;
   }
   if (mouse.dragging) {
     settings->frustum_origin += settings->frustum_size * mouse.delta;
@@ -49,15 +49,15 @@ int main(int argc, char* argv[]) {
   const auto window_width {parse_cli_argument(argc, argv, "-width").value_or(1920u)};
   const auto window_height {parse_cli_argument(argc, argv, "-height").value_or(1080u)};
 
-  auto settings {RenderingSettings {.body_radius = 0.1f, .frustum_size = 100.0f}};
+  auto settings {RenderingSettings {}};
   auto parameters_cpu {SimulationParametersCPU {}};
   auto parameters_gpu {SimulationParametersGPU {}};
-  auto configuration {Configuration {.type = ConfigurationType::PLUMMER_N_BODY, .count = 1000}};
+  auto configuration {Configuration {.type = ConfigurationType::PLUMMER_N_BODY}};
   auto bodies {initialize_configuration(parameters_gpu.general.G, configuration)};
 
   auto window {Window {window_width, window_height}};
   auto renderer {Renderer {window_width, window_height}};
-  auto simulation {std::make_unique<Simulation>(std::in_place_type<SimulationGPU>, parameters_gpu, bodies)};
+  auto simulation {std::make_unique<Simulation>(std::in_place_type<SimulationCPU>, parameters_cpu, bodies)};
   auto menu {Menu {&simulation, &parameters_cpu, &parameters_gpu, &configuration, &settings}};
 
   auto threshold {0.0};

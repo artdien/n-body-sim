@@ -19,7 +19,7 @@ enum class SimulationMode {
   GPU,
 };
 
-auto simulation_mode {SimulationMode::GPU};
+auto simulation_mode {SimulationMode::CPU};
 
 bool input_field_f32(const char* label, f32* value, f32 min = 0.0f, const char* format = "%.3f") {
   if (ImGui::InputScalar(label, ImGuiDataType_Float, value, nullptr, nullptr, format)) {
@@ -64,14 +64,6 @@ void center_radio_buttons(Args... labels) {
   radio_buttons_width += ImGui::GetStyle().ItemSpacing.x;
 
   ImGui::SetCursorPosX(0.5f * (menu_width - radio_buttons_width));
-}
-
-auto adjust_rendering_settings(rendering::RenderingSettings* settings, const simulation::ConfigurationType& type)
-    -> void {
-  // Plummer model creates lots of bodies that are more spread out.
-  // The frustum size is therefore larger for this setup.
-  settings->frustum_size = type == simulation::ConfigurationType::PLUMMER_N_BODY ? 100.0f : 3.0f;
-  settings->body_radius = 0.1f;
 }
 
 } // namespace
@@ -159,8 +151,6 @@ auto Menu::display() -> void {
           std::in_place_type<simulation::SimulationGPU>, *parameters_gpu_,
           initialize_configuration(parameters_gpu_->general.G, *configuration_));
     }
-
-    adjust_rendering_settings(settings_, configuration_->type);
   }
 
   ImGui::End();

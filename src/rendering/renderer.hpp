@@ -13,7 +13,7 @@ struct RenderingSettings {
   f32 body_radius {1.0f};
 
   /// Diameter of view frustum.
-  f32 frustum_size {10.0f};
+  f32 frustum_size {1000.0f};
 
   /// Origin of view frustum.
   glm::vec2 frustum_origin {0.0f};
