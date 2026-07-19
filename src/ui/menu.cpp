@@ -110,7 +110,10 @@ auto Menu::display() -> void {
                CONFIGURATION_TYPE_DESCRIPTIONS.data(), CONFIGURATION_TYPE_DESCRIPTIONS.size());
   input_field_f32("Configuration Radius", &configuration_->radius, 0.1f);
   input_field_f32("Mass Of Each Body", &configuration_->mass, 0.1f);
-  input_field_u32("Number Of Bodies", &configuration_->count, 1u);
+
+  if (configuration_->type == simulation::ConfigurationType::PLUMMER_N_BODY) {
+    input_field_u32("Number Of Bodies", &configuration_->count, 1u);
+  }
 
   // --- SPECIFIC SIMULATION SECTION ---
 
