@@ -186,11 +186,10 @@ auto SimulationCPU::calculate_acceleration_barnes_hut(usize node_idx, usize body
     return;
   }
 
-  const auto direction {node(node_idx).center_of_mass - body(body_idx).position};
-  const auto distance {glm::length(direction) + parameters_.eps * parameters_.eps};
-
-  if (node(node_idx).body_idx != -1 || (node(node_idx).inradius / distance < theta)) {
-    body(body_idx).acceleration += (parameters_.G * node(node_idx).total_mass / glm::pow(distance, 3.0f)) * direction;
+  if (const auto direction {node(node_idx).center_of_mass - body(body_idx).position};
+      node(node_idx).body_idx != -1 || (node(node_idx).inradius / glm::length(direction) < theta)) {
+    const auto distance {glm::dot(direction, direction) + parameters_.eps * parameters_.eps};
+    body(body_idx).acceleration += (parameters_.G * node(node_idx).total_mass / glm::pow(distance, 1.5f)) * direction;
     return;
   }
 
