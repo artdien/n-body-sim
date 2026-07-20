@@ -1,6 +1,6 @@
 ---
 BasedOnStyle: LLVM
-ColumnLimit: 120
+ColumnLimit: 160
 PointerAlignment: Left
 DerivePointerAlignment: false
 AllowShortFunctionsOnASingleLine: Empty
@@ -9,3 +9,4 @@ SortIncludes: CaseInsensitive
 SpaceBeforeCpp11BracedList: true
 AlwaysBreakTemplateDeclarations: Yes
 IndentRequiresClause: false
+IndentCaseLabels: true
