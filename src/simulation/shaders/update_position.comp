@@ -17,13 +17,13 @@ layout(binding = 0, std430) buffer SSBO {
   Body bodies[];
 };
 
-uniform uint N;
+uniform uint count;
 uniform float dt;
 
 void main() {
   uint stride = gl_NumWorkGroups.x * gl_WorkGroupSize.x;
 
-  for (uint s = gl_GlobalInvocationID.x; s < N; s += stride) {
+  for (uint s = gl_GlobalInvocationID.x; s < count; s += stride) {
     Body body = bodies[s];
 
     vec3 velocity = body.velocity;

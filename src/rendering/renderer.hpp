@@ -49,8 +49,12 @@ public:
   auto clear(glm::vec4 color = {0.0f, 0.0f, 0.0f, 0.0f}) -> void;
 
 private:
-  GLuint vertex_array_object_id_;
-  GLuint shader_program_id_;
+  GLuint vao_id_;
+  GLuint program_id_;
+
+  GLint uniform_body_radius_;
+  GLint uniform_view_;
+  GLint uniform_projection_;
 
   u32 width_;
   u32 height_;

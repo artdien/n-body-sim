@@ -1,7 +1,6 @@
 #include "simulation/thread_pool.hpp"
 
 #include <algorithm>
-#include <print>
 #include <ranges>
 
 namespace nbodysim::simulation {
@@ -10,12 +9,11 @@ ThreadPool::ThreadPool(usize capacity)
     : running_ {true}, capacity_ {capacity}, active_threads_ {0uz}, barrier_ {static_cast<ptrdiff_t>(capacity)} {
   std::ranges::for_each(std::views::iota(0uz, capacity_),
                         [this](auto _) { threads_.emplace_back([this]() { thread_execution_loop(); }); });
-  std::println("Initialized thread pool with {} thread(s)", capacity);
 }
 
 ThreadPool::~ThreadPool() {
   {
-    auto lock {std::unique_lock {mutex_}};
+    const auto lock {std::unique_lock {mutex_}};
     running_ = false;
   }
 
@@ -39,15 +37,6 @@ auto ThreadPool::schedule(std::function<void(void)>&& task) -> void {
 auto ThreadPool::wait_until_inactive() -> void {
   auto lock {std::unique_lock {mutex_}};
   task_done_.wait(lock, [this] { return active_threads_ == 0uz && tasks_.empty(); });
-}
-
-auto ThreadPool::clear() -> void {
-  const auto lock {std::lock_guard {mutex_}};
-  tasks_ = {};
-}
-
-auto ThreadPool::capacity() const -> usize {
-  return capacity_;
 }
 
 auto ThreadPool::barrier() -> void {

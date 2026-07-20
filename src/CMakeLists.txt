@@ -17,6 +17,11 @@ target_include_directories(
   PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
+target_compile_definitions(
+  n-body-sim
+  PRIVATE
+    GLFW_INCLUDE_NONE
+)
 target_sources(
   n-body-sim
   PRIVATE

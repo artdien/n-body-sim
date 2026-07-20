@@ -44,22 +44,22 @@ auto process_input(Menu* menu, Window* window, RenderingSettings* settings, cons
 
 } // namespace
 
-int main(int argc, char* argv[]) {
-  const auto window_width {parse_cli_argument(argc, argv, "-width").value_or(1920u)};
-  const auto window_height {parse_cli_argument(argc, argv, "-height").value_or(1080u)};
+auto main(int argc, char* argv[]) -> int {
+  const auto width {parse_cli_argument(argc, argv, "-width").value_or(1920u)};
+  const auto height {parse_cli_argument(argc, argv, "-height").value_or(1080u)};
 
-  auto settings {RenderingSettings {}};
   auto parameters_cpu {SimulationParametersCPU {}};
   auto parameters_gpu {SimulationParametersGPU {}};
-  auto configuration {Configuration {.type = ConfigurationType::PLUMMER_N_BODY}};
-  auto bodies {initialize_configuration(parameters_gpu.general.G, configuration)};
+  auto configuration {SimulationConfiguration {.type = SimulationConfigurationType::PLUMMER_N_BODY}};
+  auto settings {RenderingSettings {}};
+  auto bodies {initialize_bodies(parameters_cpu.G, configuration)};
 
-  auto window {Window {window_width, window_height}};
-  auto renderer {Renderer {window_width, window_height}};
+  auto window {Window {width, height}};
+  auto renderer {Renderer {width, height}};
   auto simulation {std::make_unique<Simulation>(std::in_place_type<SimulationCPU>, parameters_cpu, bodies)};
   auto menu {Menu {&simulation, &parameters_cpu, &parameters_gpu, &configuration, &settings}};
 
-  window.open([&](MouseInput mouse, KeyboardInput keyboard, double elapsed_time) {
+  window.open([&](const MouseInput& mouse, const KeyboardInput& keyboard, double elapsed_time) {
     window.set_title(std::format("{} ({:.2f}ms)", WINDOW_TITLE, elapsed_time));
 
     process_input(&menu, &window, &settings, mouse, keyboard);
@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
 
     renderer.clear();
     renderer.render(std::visit([](Simulatable auto& s) { return s.buffer_id(); }, *simulation),
-                    std::visit([](Simulatable auto& s) { return s.bodies_count(); }, *simulation), settings);
+                    std::visit([](Simulatable auto& s) { return s.count(); }, *simulation), settings);
 
     menu.display();
   });

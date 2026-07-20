@@ -11,7 +11,7 @@ constexpr bool DEBUG_BUILD = false;
 #endif
 
 /// Callback to use in conjunction with OpenGL debug messaging.
-void debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, GLchar const* message,
-                    void const* user_param);
+auto debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, GLchar const* message,
+                    void const* user_param) -> void;
 
 } // namespace nbodysim::platform

@@ -13,33 +13,39 @@ namespace nbodysim::rendering {
 
 namespace {
 
-constexpr auto VERTEX_SHADER = std::string_view {
+constexpr auto VERTEX_SHADER {std::string_view {
 #include "shaders/shader.vert"
-};
+}};
 
-constexpr auto FRAGMENT_SHADER = std::string_view {
+constexpr auto FRAGMENT_SHADER {std::string_view {
 #include "shaders/shader.frag"
-};
+}};
 
 } // namespace
 
 Renderer::Renderer(u32 width, u32 height) : width_ {width}, height_ {height}, fence_ {nullptr} {
   const auto vertex_shader_id {utils::compile_shader(GL_VERTEX_SHADER, VERTEX_SHADER.data())};
   const auto fragment_shader_id {utils::compile_shader(GL_FRAGMENT_SHADER, FRAGMENT_SHADER.data())};
-  shader_program_id_ = utils::link_shaders(vertex_shader_id, fragment_shader_id);
+  program_id_ = utils::link_shaders(vertex_shader_id, fragment_shader_id);
+
+  glUseProgram(program_id_);
+  uniform_body_radius_ = glGetUniformLocation(program_id_, "body_radius");
+  uniform_view_ = glGetUniformLocation(program_id_, "view");
+  uniform_projection_ = glGetUniformLocation(program_id_, "projection");
+  glUseProgram(0);
 
   glViewport(0, 0, width, height);
 
   // We use an SSBO with programmable vertex pulling for drawing and therefore do not really need a VAO.
   // However, since the OpenGL specification requires a bound VAO to make a draw call,
   // we will bind here a "dummy" VAO to satisfy this requirement.
-  glCreateVertexArrays(1, &vertex_array_object_id_);
-  glBindVertexArray(vertex_array_object_id_);
+  glCreateVertexArrays(1, &vao_id_);
+  glBindVertexArray(vao_id_);
 }
 
 Renderer::~Renderer() {
-  glDeleteProgram(shader_program_id_);
-  glDeleteVertexArrays(1, &vertex_array_object_id_);
+  glDeleteProgram(program_id_);
+  glDeleteVertexArrays(1, &vao_id_);
   glDeleteSync(fence_);
 }
 
@@ -59,13 +65,12 @@ auto Renderer::render(GLuint buffer_id, usize count, const RenderingSettings& se
     }
   }
 
-  glUseProgram(shader_program_id_);
-
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, buffer_id);
 
-  glUniform1f(glGetUniformLocation(shader_program_id_, "body_radius"), settings.body_radius);
-  glUniformMatrix4fv(glGetUniformLocation(shader_program_id_, "view"), 1, GL_FALSE, glm::value_ptr(view));
-  glUniformMatrix4fv(glGetUniformLocation(shader_program_id_, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+  glUseProgram(program_id_);
+  glUniform1f(uniform_body_radius_, settings.body_radius);
+  glUniformMatrix4fv(uniform_view_, 1, GL_FALSE, glm::value_ptr(view));
+  glUniformMatrix4fv(uniform_projection_, 1, GL_FALSE, glm::value_ptr(projection));
 
   glDrawArraysInstanced(GL_TRIANGLES, 0, 6, count);
 

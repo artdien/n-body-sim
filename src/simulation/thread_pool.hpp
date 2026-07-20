@@ -39,18 +39,6 @@ public:
   /// In case all threads are already inactive when this method is called this method returns immediately.
   auto wait_until_inactive() -> void;
 
-  /// Clears all tasks in current thread pool.
-  ///
-  /// Tasks that are currently being executed by threads are not cleared.
-  auto clear() -> void;
-
-  /// Gets the current capacity of the thread pool.
-  ///
-  /// Capacity is the maximum number of threads that are running in the thread pool.
-  ///
-  /// @return Capacity of thread pool.
-  auto capacity() const -> usize;
-
   /// Sets a synchronization barrier.
   ///
   /// This barrier applies to all threads in the pool.

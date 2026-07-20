@@ -53,7 +53,6 @@ auto scroll_callback([[maybe_unused]] GLFWwindow* window, [[maybe_unused]] doubl
   if (offset_y > 0) {
     add_mouse_input_event({.scroll_direction = ScrollDirection::UP});
   }
-
   if (offset_y < 0) {
     add_mouse_input_event({.scroll_direction = ScrollDirection::DOWN});
   }
@@ -73,7 +72,7 @@ auto key_callback([[maybe_unused]] GLFWwindow* window, int key, int scan_code, i
 
 } // namespace
 
-Window::Window(u32 width, u32 height, const std::string& title) : width_ {width}, height_ {height}, title_ {title} {
+Window::Window(u32 width, u32 height, const std::string& title) : title_ {title}, width_ {width}, height_ {height} {
   glfwSetErrorCallback([](int error, const char* description) {
     std::println(stderr, "Error initializing window: [{}] {}", error, description);
   });
@@ -126,7 +125,7 @@ Window::~Window() {
   glfwTerminate();
 }
 
-auto Window::open(std::function<void(MouseInput, KeyboardInput, double)> execute_per_frame) -> void {
+auto Window::open(std::function<void(const MouseInput&, const KeyboardInput&, double)> execute_per_frame) -> void {
   auto previous_time {std::chrono::steady_clock::now()};
   auto mouse_position {glm::vec2 {0.0f}};
 

@@ -1,7 +1,5 @@
 #pragma once
 
-#define GLFW_INCLUDE_NONE
-
 #include <functional>
 #include <string>
 
@@ -38,7 +36,7 @@ public:
   ///                          - Last mouse input event since last frame.
   ///                          - Last keyboard input event since last frame.
   ///                          - Elapsed time since last frame.
-  auto open(std::function<void(MouseInput, KeyboardInput, double)> execute_per_frame) -> void;
+  auto open(std::function<void(const MouseInput&, const KeyboardInput&, double)> execute_per_frame) -> void;
 
   /// Closes an opened window.
   auto close() -> void;
@@ -50,9 +48,9 @@ public:
 
 private:
   GLFWwindow* window_;
+  std::string title_;
   u32 width_;
   u32 height_;
-  std::string title_;
 };
 
 } // namespace nbodysim::platform

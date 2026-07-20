@@ -11,19 +11,19 @@ namespace nbodysim::platform {
 
 namespace {
 
-constexpr auto SUPPRESSED_MESSAGE_IDS = std::array {
+constexpr auto SUPPRESSED_MESSAGE_IDS {std::array {
     131185u, // Details about created buffers
-};
+}};
 
 }
 
-void debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, [[maybe_unused]] GLsizei length,
-                    GLchar const* message, [[maybe_unused]] void const* user_param) {
+auto debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, [[maybe_unused]] GLsizei length,
+                    GLchar const* message, [[maybe_unused]] void const* user_param) -> void {
   if (std::ranges::contains(SUPPRESSED_MESSAGE_IDS, id)) {
     return;
   }
 
-  auto const source_as_string = [](auto source) {
+  const auto source_as_string {[](auto source) {
     switch (source) {
     case GL_DEBUG_SOURCE_API:
       return "API"s;
@@ -40,9 +40,9 @@ void debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, [[ma
     default:
       return std::format("UNKNOWN_SOURCE({})", source);
     }
-  }(source);
+  }(source)};
 
-  auto const type_as_string = [](auto type) {
+  const auto type_as_string {[](auto type) {
     switch (type) {
     case GL_DEBUG_TYPE_ERROR:
       return "ERROR"s;
@@ -61,9 +61,9 @@ void debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, [[ma
     default:
       return std::format("UNKNOWN_TYPE({})", type);
     }
-  }(type);
+  }(type)};
 
-  auto const severity_as_string = [](auto severity) {
+  const auto severity_as_string {[](auto severity) {
     switch (severity) {
     case GL_DEBUG_SEVERITY_NOTIFICATION:
       return "NOTIFICATION"s;
@@ -76,7 +76,7 @@ void debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, [[ma
     default:
       return std::format("UNKNOWN_SEVERITY({})", severity);
     }
-  }(severity);
+  }(severity)};
 
   std::println("{} - [{}] [{}] [{}] - {}", severity_as_string, source_as_string, type_as_string, id, message);
 }

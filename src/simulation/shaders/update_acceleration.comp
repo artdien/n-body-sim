@@ -17,7 +17,7 @@ layout(binding = 0, std430) buffer SSBO {
   Body bodies[];
 };
 
-uniform uint N;
+uniform uint count;
 uniform float G;
 uniform float dt;
 uniform float eps;
@@ -35,17 +35,17 @@ vec3 calculate_acceleration(vec3 a_i, vec3 x_i, vec3 x_j, float m_j) {
 void main() {
   uint stride = gl_NumWorkGroups.x * gl_WorkGroupSize.x;
 
-  for (uint s = gl_GlobalInvocationID.x; s < N; s += stride) {
+  for (uint s = gl_GlobalInvocationID.x; s < count; s += stride) {
     Body body = bodies[s];
 
     vec3 position = body.position;
     vec3 acceleration = vec3(0.0);
 
-    for (uint tile_offset = 0; tile_offset < N; tile_offset += gl_WorkGroupSize.x) {
+    for (uint tile_offset = 0; tile_offset < count; tile_offset += gl_WorkGroupSize.x) {
       uint idx = gl_LocalInvocationID.x + tile_offset;
       Body body_cached = bodies[idx];
 
-      if (idx < N) {
+      if (idx < count) {
         cache[gl_LocalInvocationID.x] = vec4(body_cached.position, body_cached.mass);
       } else {
         // Pad memory for "residual" computations in case the tile size is not a multiple of the number of bodies.

@@ -7,15 +7,15 @@
 
 namespace nbodysim::simulation {
 
-enum class ConfigurationType {
+enum class SimulationConfigurationType {
   EULER_THREE_BODY,
   LAGRANGE_THREE_BODY,
   PLUMMER_N_BODY,
 };
 
-struct Configuration {
+struct SimulationConfiguration {
   /// Type of configuration.
-  ConfigurationType type {ConfigurationType::PLUMMER_N_BODY};
+  SimulationConfigurationType type {SimulationConfigurationType::PLUMMER_N_BODY};
 
   /// Initial distance of bodies from origin.
   /// For Plummer model, this is the Plummer radius.
@@ -34,6 +34,6 @@ struct Configuration {
 ///
 /// @param G Gravitational constant.
 /// @param configuration Configuration for the initialized bodies.
-std::vector<Body> initialize_configuration(f32 G, const Configuration& configuration);
+auto initialize_bodies(f32 G, const SimulationConfiguration& configuration) -> std::vector<Body>;
 
 } // namespace nbodysim::simulation

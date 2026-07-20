@@ -37,13 +37,10 @@ concept Simulatable = requires(S s, const S cs) {
   /// Returns the number of bodies in the current simulation.
   ///
   /// @return Number of bodies.
-  { cs.bodies_count() } -> std::same_as<usize>;
+  { cs.count() } -> std::same_as<usize>;
 };
 
-struct SimulationParametersCPU {
-  /// General simulation parameters.
-  SimulationParameters general;
-
+struct SimulationParametersCPU : SimulationParameters {
   /// Flag whether to use the Barnes-Hut algorithm for simulation.
   bool use_barnes_hut {true};
 
@@ -70,7 +67,7 @@ public:
 
   auto step() -> void;
   auto buffer_id() const -> GLuint;
-  auto bodies_count() const -> usize;
+  auto count() const -> usize;
 
 private:
   SimulationParametersCPU parameters_;
@@ -99,10 +96,7 @@ private:
   }
 };
 
-struct SimulationParametersGPU {
-  /// General simulation parameters.
-  SimulationParameters general;
-
+struct SimulationParametersGPU : SimulationParameters {
   /// Number of work groups to dispatch on GPU for simulation.
   /// Each work group calculates the simulation step in parallel for a number of bodies.
   u32 dispatch_size {8u};
@@ -130,7 +124,7 @@ public:
 
   auto step() -> void;
   auto buffer_id() const -> GLuint;
-  auto bodies_count() const -> usize;
+  auto count() const -> usize;
 
 private:
   SimulationParametersGPU parameters_;
@@ -138,10 +132,15 @@ private:
   GLuint buffer_id_;
   std::span<Body> buffer_;
 
-  GLuint update_position_program_id_;
-  GLuint update_acceleration_program_id_;
+  GLuint position_program_id_;
+  GLuint acceleration_program_id_;
 
-  usize bodies_count_;
+  GLint uniform_position_count_;
+  GLint uniform_position_dt_;
+  GLint uniform_acceleration_count_;
+  GLint uniform_acceleration_dt_;
+  GLint uniform_acceleration_G_;
+  GLint uniform_acceleration_eps_;
 };
 
 static_assert(Simulatable<SimulationCPU>);

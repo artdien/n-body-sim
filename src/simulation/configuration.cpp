@@ -14,7 +14,7 @@ constexpr auto INV_SQRT_THREE {std::numbers::inv_sqrt3_v<float>};
 constexpr auto FIVE_OVER_FOUR {5.0f / 4.0f};
 constexpr auto PI {std::numbers::pi_v<float>};
 
-std::vector<Body> initialize_euler_configuration(f32 G, f32 radius, f32 mass) {
+auto initialize_euler_configuration(f32 G, f32 radius, f32 mass) -> std::vector<Body> {
   auto bodies {std::vector<Body> {3}};
 
   auto& body_2 {bodies[2]};
@@ -41,7 +41,7 @@ std::vector<Body> initialize_euler_configuration(f32 G, f32 radius, f32 mass) {
   return bodies;
 }
 
-std::vector<Body> initialize_lagrange_configuration(f32 G, f32 radius, f32 mass) {
+auto initialize_lagrange_configuration(f32 G, f32 radius, f32 mass) -> std::vector<Body> {
   auto bodies {std::vector<Body> {3}};
 
   auto& body_1 {bodies[0]};
@@ -68,7 +68,7 @@ std::vector<Body> initialize_lagrange_configuration(f32 G, f32 radius, f32 mass)
   return bodies;
 }
 
-std::vector<Body> initialize_plummer_configuration(f32 G, f32 radius, f32 mass, u32 count) {
+auto initialize_plummer_configuration(f32 G, f32 radius, f32 mass, u32 count) -> std::vector<Body> {
   auto bodies {std::vector<Body> {count}};
 
   auto device {std::random_device {}};
@@ -136,13 +136,13 @@ std::vector<Body> initialize_plummer_configuration(f32 G, f32 radius, f32 mass, 
 
 } // namespace
 
-std::vector<Body> initialize_configuration(f32 G, const Configuration& configuration) {
+auto initialize_bodies(f32 G, const SimulationConfiguration& configuration) -> std::vector<Body> {
   switch (configuration.type) {
-  case ConfigurationType::EULER_THREE_BODY:
+  case SimulationConfigurationType::EULER_THREE_BODY:
     return initialize_euler_configuration(G, configuration.radius, configuration.mass);
-  case ConfigurationType::LAGRANGE_THREE_BODY:
+  case SimulationConfigurationType::LAGRANGE_THREE_BODY:
     return initialize_lagrange_configuration(G, configuration.radius, configuration.mass);
-  case ConfigurationType::PLUMMER_N_BODY:
+  case SimulationConfigurationType::PLUMMER_N_BODY:
     return initialize_plummer_configuration(G, configuration.radius, configuration.mass, configuration.count);
   }
 }
