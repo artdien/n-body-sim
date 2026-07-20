@@ -30,8 +30,7 @@ auto determine_initial_center_and_inradius(std::span<const Body> bodies) -> std:
   return {center, inradius};
 }
 
-auto determine_node_center_and_inradius(usize octant, const glm::vec3& center, f32 inradius)
-    -> std::tuple<glm::vec3, f32> {
+auto determine_node_center_and_inradius(usize octant, const glm::vec3& center, f32 inradius) -> std::tuple<glm::vec3, f32> {
   const auto child_inradius {0.5f * inradius};
   const auto child_center = glm::vec3 {
       octant & 1uz ? center.x + 0.5f * child_inradius : center.x - 0.5f * child_inradius,
@@ -105,8 +104,7 @@ auto SimulationCPU::construct_barnes_hut_tree() -> void {
   node_pool_.deallocate();
   root_node_idx_ = node_pool_.allocate_node(center, inradius);
 
-  std::ranges::for_each(std::views::iota(0uz, bodies_.size()),
-                        [this](auto i) { insert_octree_node(root_node_idx_, i); });
+  std::ranges::for_each(std::views::iota(0uz, bodies_.size()), [this](auto i) { insert_octree_node(root_node_idx_, i); });
 }
 
 auto SimulationCPU::insert_octree_node(usize node_idx, usize body_idx) -> void {
@@ -138,8 +136,7 @@ auto SimulationCPU::insert_octree_node(usize node_idx, usize body_idx) -> void {
     insert_octree_child_node(node_idx, body_idx);
   }
 
-  const auto weighted_center {node(node_idx).total_mass * node(node_idx).center_of_mass +
-                              body(body_idx).mass * body(body_idx).position};
+  const auto weighted_center {node(node_idx).total_mass * node(node_idx).center_of_mass + body(body_idx).mass * body(body_idx).position};
   node(node_idx).total_mass += body(body_idx).mass;
   node(node_idx).center_of_mass = (1.0f / node(node_idx).total_mass) * weighted_center;
 }
@@ -148,8 +145,7 @@ auto SimulationCPU::insert_octree_child_node(usize node_idx, usize body_idx) -> 
   const auto octant {determine_octant(node(node_idx).center, body(body_idx).position)};
 
   if (node(node_idx).children[octant] == -1) {
-    const auto [center,
-                inradius] {determine_node_center_and_inradius(octant, node(node_idx).center, node(node_idx).inradius)};
+    const auto [center, inradius] {determine_node_center_and_inradius(octant, node(node_idx).center, node(node_idx).inradius)};
     const auto child_idx {node_pool_.allocate_node(center, inradius)};
     node(node_idx).children[octant] = static_cast<i32>(child_idx);
   }
@@ -159,8 +155,7 @@ auto SimulationCPU::insert_octree_child_node(usize node_idx, usize body_idx) -> 
 
 auto SimulationCPU::step_partition(usize begin, usize end) -> void {
   std::ranges::for_each(std::views::iota(begin, end), [this](auto i) {
-    body(i).position +=
-        body(i).velocity * parameters_.dt + 0.5f * body(i).acceleration * parameters_.dt * parameters_.dt;
+    body(i).position += body(i).velocity * parameters_.dt + 0.5f * body(i).acceleration * parameters_.dt * parameters_.dt;
     body(i).velocity += 0.5f * body(i).acceleration * parameters_.dt;
     body(i).acceleration = glm::vec4 {0.0};
   });
@@ -168,14 +163,12 @@ auto SimulationCPU::step_partition(usize begin, usize end) -> void {
   thread_pool_.barrier();
 
   if (parameters_.use_barnes_hut) {
-    std::ranges::for_each(std::views::iota(begin, end),
-                          [this](auto i) { calculate_acceleration_barnes_hut(root_node_idx_, i, parameters_.theta); });
+    std::ranges::for_each(std::views::iota(begin, end), [this](auto i) { calculate_acceleration_barnes_hut(root_node_idx_, i, parameters_.theta); });
   } else {
     std::ranges::for_each(std::views::iota(begin, end), [this](auto i) { calculate_acceleration_all_pairs(i); });
   }
 
-  std::ranges::for_each(std::views::iota(begin, end),
-                        [this](auto i) { body(i).velocity += 0.5f * body(i).acceleration * parameters_.dt; });
+  std::ranges::for_each(std::views::iota(begin, end), [this](auto i) { body(i).velocity += 0.5f * body(i).acceleration * parameters_.dt; });
 }
 
 auto SimulationCPU::calculate_acceleration_all_pairs(usize body_idx) -> void {

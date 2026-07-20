@@ -69,10 +69,10 @@ auto center_radio_buttons(Args... labels) -> void {
 } // namespace
 
 Menu::Menu(std::unique_ptr<simulation::Simulation>* simulation, simulation::SimulationParametersCPU* parameters_cpu,
-           simulation::SimulationParametersGPU* parameters_gpu, simulation::SimulationConfiguration* configuration,
-           rendering::RenderingSettings* settings, bool visible)
-    : simulation_ {simulation}, parameters_cpu_ {parameters_cpu}, parameters_gpu_ {parameters_gpu},
-      configuration_ {configuration}, settings_ {settings}, visible_ {visible} {
+           simulation::SimulationParametersGPU* parameters_gpu, simulation::SimulationConfiguration* configuration, rendering::RenderingSettings* settings,
+           bool visible)
+    : simulation_ {simulation}, parameters_cpu_ {parameters_cpu}, parameters_gpu_ {parameters_gpu}, configuration_ {configuration}, settings_ {settings},
+      visible_ {visible} {
   ImGuiIO& io = ImGui::GetIO();
   io.IniFilename = nullptr;
 }
@@ -105,8 +105,8 @@ auto Menu::display() -> void {
   ImGui::SameLine();
   ImGui::RadioButton("GPU", reinterpret_cast<i32*>(&simulation_mode), 1);
 
-  ImGui::Combo("Configuration Type", reinterpret_cast<i32*>(&configuration_->type),
-               CONFIGURATION_TYPE_DESCRIPTIONS.data(), CONFIGURATION_TYPE_DESCRIPTIONS.size());
+  ImGui::Combo("Configuration Type", reinterpret_cast<i32*>(&configuration_->type), CONFIGURATION_TYPE_DESCRIPTIONS.data(),
+               CONFIGURATION_TYPE_DESCRIPTIONS.size());
   input_field_f32("Configuration Radius", &configuration_->radius, 0.1f);
   input_field_f32("Mass Of Each Body", &configuration_->mass, 0.1f);
 
@@ -141,13 +141,11 @@ auto Menu::display() -> void {
   center_button("Create New Simulation");
   if (ImGui::Button("Create New Simulation")) {
     if (simulation_mode == SimulationMode::CPU) {
-      *simulation_ =
-          std::make_unique<simulation::Simulation>(std::in_place_type<simulation::SimulationCPU>, *parameters_cpu_,
-                                                   initialize_bodies(parameters_cpu_->G, *configuration_));
+      *simulation_ = std::make_unique<simulation::Simulation>(std::in_place_type<simulation::SimulationCPU>, *parameters_cpu_,
+                                                              initialize_bodies(parameters_cpu_->G, *configuration_));
     } else if (simulation_mode == SimulationMode::GPU) {
-      *simulation_ =
-          std::make_unique<simulation::Simulation>(std::in_place_type<simulation::SimulationGPU>, *parameters_gpu_,
-                                                   initialize_bodies(parameters_gpu_->G, *configuration_));
+      *simulation_ = std::make_unique<simulation::Simulation>(std::in_place_type<simulation::SimulationGPU>, *parameters_gpu_,
+                                                              initialize_bodies(parameters_gpu_->G, *configuration_));
     }
   }
 

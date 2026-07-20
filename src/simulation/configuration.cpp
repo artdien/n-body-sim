@@ -138,12 +138,12 @@ auto initialize_plummer_configuration(f32 G, f32 radius, f32 mass, u32 count) ->
 
 auto initialize_bodies(f32 G, const SimulationConfiguration& configuration) -> std::vector<Body> {
   switch (configuration.type) {
-  case SimulationConfigurationType::EULER_THREE_BODY:
-    return initialize_euler_configuration(G, configuration.radius, configuration.mass);
-  case SimulationConfigurationType::LAGRANGE_THREE_BODY:
-    return initialize_lagrange_configuration(G, configuration.radius, configuration.mass);
-  case SimulationConfigurationType::PLUMMER_N_BODY:
-    return initialize_plummer_configuration(G, configuration.radius, configuration.mass, configuration.count);
+    case SimulationConfigurationType::EULER_THREE_BODY:
+      return initialize_euler_configuration(G, configuration.radius, configuration.mass);
+    case SimulationConfigurationType::LAGRANGE_THREE_BODY:
+      return initialize_lagrange_configuration(G, configuration.radius, configuration.mass);
+    case SimulationConfigurationType::PLUMMER_N_BODY:
+      return initialize_plummer_configuration(G, configuration.radius, configuration.mass, configuration.count);
   }
 }
 

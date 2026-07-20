@@ -19,8 +19,8 @@ public:
   ///
   /// @param visible Flag to denote whether menu is currently visible or not.
   Menu(std::unique_ptr<simulation::Simulation>* simulation, simulation::SimulationParametersCPU* parameters_cpu,
-       simulation::SimulationParametersGPU* parameters_gpu, simulation::SimulationConfiguration* configuration,
-       rendering::RenderingSettings* settings, bool visible = false);
+       simulation::SimulationParametersGPU* parameters_gpu, simulation::SimulationConfiguration* configuration, rendering::RenderingSettings* settings,
+       bool visible = false);
 
   Menu(const Menu&) = delete;
   Menu(Menu&&) = delete;

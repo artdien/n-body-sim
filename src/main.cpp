@@ -22,8 +22,7 @@ namespace {
 
 constexpr auto WINDOW_TITLE {std::string_view {"N-Body Simulation"}};
 
-auto process_input(Menu* menu, Window* window, RenderingSettings* settings, const MouseInput& mouse,
-                   const KeyboardInput& keyboard) -> void {
+auto process_input(Menu* menu, Window* window, RenderingSettings* settings, const MouseInput& mouse, const KeyboardInput& keyboard) -> void {
   if (keyboard.pressed_key == "m") {
     menu->toggle();
   }

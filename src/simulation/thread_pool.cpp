@@ -5,10 +5,8 @@
 
 namespace nbodysim::simulation {
 
-ThreadPool::ThreadPool(usize capacity)
-    : running_ {true}, capacity_ {capacity}, active_threads_ {0uz}, barrier_ {static_cast<ptrdiff_t>(capacity)} {
-  std::ranges::for_each(std::views::iota(0uz, capacity_),
-                        [this](auto _) { threads_.emplace_back([this]() { thread_execution_loop(); }); });
+ThreadPool::ThreadPool(usize capacity) : running_ {true}, capacity_ {capacity}, active_threads_ {0uz}, barrier_ {static_cast<ptrdiff_t>(capacity)} {
+  std::ranges::for_each(std::views::iota(0uz, capacity_), [this](auto _) { threads_.emplace_back([this]() { thread_execution_loop(); }); });
 }
 
 ThreadPool::~ThreadPool() {

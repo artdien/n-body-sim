@@ -25,10 +25,8 @@ constexpr auto UPDATE_ACCELERATION_SHADER {std::string_view {
 
 } // namespace
 
-SimulationGPU::SimulationGPU(const SimulationParametersGPU& parameters, const std::vector<Body>& bodies)
-    : parameters_ {parameters} {
-  const auto position_shader {
-      utils::replace_all(UPDATE_POSITION_SHADER, TILE_SIZE_ID, std::format("{}", parameters_.tile_size))};
+SimulationGPU::SimulationGPU(const SimulationParametersGPU& parameters, const std::vector<Body>& bodies) : parameters_ {parameters} {
+  const auto position_shader {utils::replace_all(UPDATE_POSITION_SHADER, TILE_SIZE_ID, std::format("{}", parameters_.tile_size))};
   const auto position_shader_id {utils::compile_shader(GL_COMPUTE_SHADER, position_shader.data())};
   position_program_id_ = utils::link_shaders(position_shader_id);
 
@@ -37,8 +35,7 @@ SimulationGPU::SimulationGPU(const SimulationParametersGPU& parameters, const st
   uniform_position_dt_ = glGetUniformLocation(position_program_id_, "dt");
   glUseProgram(0);
 
-  const auto acceleration_shader {
-      utils::replace_all(UPDATE_ACCELERATION_SHADER, TILE_SIZE_ID, std::format("{}", parameters_.tile_size))};
+  const auto acceleration_shader {utils::replace_all(UPDATE_ACCELERATION_SHADER, TILE_SIZE_ID, std::format("{}", parameters_.tile_size))};
   const auto acceleration_shader_id {utils::compile_shader(GL_COMPUTE_SHADER, acceleration_shader.data())};
   acceleration_program_id_ = utils::link_shaders(acceleration_shader_id);
 

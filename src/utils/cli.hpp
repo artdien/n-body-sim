@@ -19,8 +19,7 @@ inline auto parse_cli_argument(i32 argc, c8* argv[], std::string_view argument) 
     const auto as_string {std::string_view {*it}};
     auto parsed {u32 {}};
 
-    if (const auto result {std::from_chars(as_string.data(), as_string.data() + as_string.size(), parsed)};
-        result.ec != std::errc::invalid_argument) {
+    if (const auto result {std::from_chars(as_string.data(), as_string.data() + as_string.size(), parsed)}; result.ec != std::errc::invalid_argument) {
       return std::make_optional(parsed);
     }
   }

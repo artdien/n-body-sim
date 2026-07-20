@@ -16,15 +16,13 @@ namespace nbodysim::utils {
 /// @param to_replace The substring to search for.
 /// @param replace_with The substring to replace with.
 /// @return A new string containing the source with all replacements applied.
-inline auto replace_all(std::string_view source, std::string_view to_replace, std::string_view replace_with)
-    -> std::string {
+inline auto replace_all(std::string_view source, std::string_view to_replace, std::string_view replace_with) -> std::string {
   if (to_replace.empty()) {
     return std::string(source);
   }
 
   usize occurrences {0uz};
-  for (auto position {source.find(to_replace)}; position != std::string_view::npos;
-       position = source.find(to_replace, position + to_replace.size())) {
+  for (auto position {source.find(to_replace)}; position != std::string_view::npos; position = source.find(to_replace, position + to_replace.size())) {
     ++occurrences;
   }
 

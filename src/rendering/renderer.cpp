@@ -54,14 +54,11 @@ auto Renderer::render(GLuint buffer_id, usize count, const RenderingSettings& se
   const auto frustum_size_half {0.5f * settings.frustum_size};
 
   const auto view = glm::translate(glm::mat4(1.0f), glm::vec3(settings.frustum_origin, 0.0f));
-  const auto projection {glm::ortho(-frustum_size_half * aspect_ratio, frustum_size_half * aspect_ratio,
-                                    -frustum_size_half, frustum_size_half)};
+  const auto projection {glm::ortho(-frustum_size_half * aspect_ratio, frustum_size_half * aspect_ratio, -frustum_size_half, frustum_size_half)};
 
   if (fence_) {
-    if (const auto result {glClientWaitSync(fence_, GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED)};
-        result == GL_WAIT_FAILED) {
-      glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_ERROR, 0, GL_DEBUG_SEVERITY_HIGH, -1,
-                           "Waiting on fence failed");
+    if (const auto result {glClientWaitSync(fence_, GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED)}; result == GL_WAIT_FAILED) {
+      glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_ERROR, 0, GL_DEBUG_SEVERITY_HIGH, -1, "Waiting on fence failed");
     }
   }
 

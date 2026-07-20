@@ -15,8 +15,7 @@ namespace nbodysim::platform {
 
 namespace {
 
-auto determine_mouse_position(GLFWwindow* window, u32 width, u32 height, const glm::vec2& last_mouse_position)
-    -> glm::vec2 {
+auto determine_mouse_position(GLFWwindow* window, u32 width, u32 height, const glm::vec2& last_mouse_position) -> glm::vec2 {
   static auto first_mouse_click {true};
 
   if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
@@ -58,8 +57,7 @@ auto scroll_callback([[maybe_unused]] GLFWwindow* window, [[maybe_unused]] doubl
   }
 }
 
-auto key_callback([[maybe_unused]] GLFWwindow* window, int key, int scan_code, int action,
-                  [[maybe_unused]] int modifiers) -> void {
+auto key_callback([[maybe_unused]] GLFWwindow* window, int key, int scan_code, int action, [[maybe_unused]] int modifiers) -> void {
   if (action == GLFW_PRESS) {
     if (key == GLFW_KEY_ESCAPE) {
       add_keyboard_input_event({.pressed_key = std::string {"esc"}});
@@ -73,9 +71,7 @@ auto key_callback([[maybe_unused]] GLFWwindow* window, int key, int scan_code, i
 } // namespace
 
 Window::Window(u32 width, u32 height, const std::string& title) : title_ {title}, width_ {width}, height_ {height} {
-  glfwSetErrorCallback([](int error, const char* description) {
-    std::println(stderr, "Error initializing window: [{}] {}", error, description);
-  });
+  glfwSetErrorCallback([](int error, const char* description) { std::println(stderr, "Error initializing window: [{}] {}", error, description); });
 
   if (!glfwInit()) {
     throw std::runtime_error("Failed to initialize GLFW");
@@ -131,8 +127,7 @@ auto Window::open(std::function<void(const MouseInput&, const KeyboardInput&, do
 
   while (!glfwWindowShouldClose(window_)) {
     const auto current_time {std::chrono::steady_clock::now()};
-    const auto elapsed_time {std::chrono::round<std::chrono::microseconds>(current_time - previous_time).count() /
-                             1000.0};
+    const auto elapsed_time {std::chrono::round<std::chrono::microseconds>(current_time - previous_time).count() / 1000.0};
     previous_time = current_time;
 
     mouse_position = determine_mouse_position(window_, width_, height_, mouse_position);

@@ -26,8 +26,7 @@ inline auto compile_shader(GLuint shader_type, const char* shader) -> GLuint {
   if (log_size > 0) {
     auto log {std::vector<c8>(static_cast<u32>(log_size + 1))};
     glGetShaderInfoLog(shader_id, log_size, nullptr, log.data());
-    glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_OTHER, 0, GL_DEBUG_SEVERITY_NOTIFICATION, -1,
-                         log.data());
+    glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_OTHER, 0, GL_DEBUG_SEVERITY_NOTIFICATION, -1, log.data());
   }
 
   return shader_id;
@@ -53,8 +52,7 @@ inline auto link_shaders(Args... shader_ids) -> GLuint {
   if (log_size > 0) {
     auto log {std::vector<c8>(static_cast<u32>(log_size + 1))};
     glGetProgramInfoLog(shader_program_id, log_size, nullptr, log.data());
-    glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_OTHER, 0, GL_DEBUG_SEVERITY_NOTIFICATION, -1,
-                         log.data());
+    glDebugMessageInsert(GL_DEBUG_SOURCE_APPLICATION, GL_DEBUG_TYPE_OTHER, 0, GL_DEBUG_SEVERITY_NOTIFICATION, -1, log.data());
   }
 
   ((glDetachShader(shader_program_id, shader_ids), glDeleteShader(shader_ids)), ...);
