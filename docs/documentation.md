@@ -408,6 +408,7 @@ To keep the project lightweight and maintainable, third-party dependencies are k
 * **GLM**: Used for linear algebra and vector mathematics, providing an API closely aligned with GLSL.
 * **GLFW**: Used for window creation and the handling of keyboard and mouse input.
 * **glad**: Used as an OpenGL loader to access modern function pointers.
+* **Dear ImGui**: Used to implement a menu, allowing for the adjustment of simulation parameters and rendering settings.
 
 ### Architecture
 
