@@ -21,6 +21,8 @@ using namespace nbodysim::utils;
 namespace {
 
 constexpr auto WINDOW_TITLE {std::string_view {"N-Body Simulation"}};
+constexpr auto UPDATE_TIME_MS {1000.0 / 30.0};
+constexpr auto MAX_LAG_MS {100.0};
 
 auto process_input(Menu* menu, Window* window, RenderingSettings* settings, const MouseInput& mouse, const KeyboardInput& keyboard) -> void {
   if (keyboard.pressed_key == "m") {
@@ -58,12 +60,17 @@ auto main(int argc, char* argv[]) -> int {
   auto simulation {std::make_unique<Simulation>(std::in_place_type<SimulationCPU>, parameters_cpu, bodies)};
   auto menu {Menu {&simulation, &parameters_cpu, &parameters_gpu, &configuration, &settings}};
 
+  auto lag {0.0};
+
   window.open([&](const MouseInput& mouse, const KeyboardInput& keyboard, double elapsed_time) {
     window.set_title(std::format("{} ({:.2f}ms)", WINDOW_TITLE, elapsed_time));
-
     process_input(&menu, &window, &settings, mouse, keyboard);
 
-    std::visit([](Simulatable auto& s) { s.step(); }, *simulation);
+    lag = std::min(lag + elapsed_time, MAX_LAG_MS);
+    while (lag >= UPDATE_TIME_MS) {
+      std::visit([](Simulatable auto& s) { s.step(); }, *simulation);
+      lag -= UPDATE_TIME_MS;
+    }
 
     renderer.clear();
     renderer.render(std::visit([](Simulatable auto& s) { return s.buffer_id(); }, *simulation),
