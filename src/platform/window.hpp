@@ -5,10 +5,13 @@
 
 #include <GLFW/glfw3.h>
 
-#include "platform/input.hpp"
 #include "platform/types.hpp"
 
 namespace nbodysim::platform {
+
+// Forward declarations
+struct KeyboardInput;
+struct MouseInput;
 
 class Window {
 public:
@@ -36,7 +39,7 @@ public:
   ///                          - Last mouse input event since last frame.
   ///                          - Last keyboard input event since last frame.
   ///                          - Elapsed time since last frame.
-  auto open(std::function<void(const MouseInput&, const KeyboardInput&, double)> execute_per_frame) -> void;
+  auto open(std::function<void(const MouseInput&, const KeyboardInput&, f64)> execute_per_frame) -> void;
 
   /// Closes an opened window.
   auto close() -> void;

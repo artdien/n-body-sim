@@ -2,6 +2,8 @@
 
 #include <concepts>
 #include <span>
+#include <thread>
+#include <variant>
 #include <vector>
 
 #include <glad/glad.h>

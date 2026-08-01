@@ -2,6 +2,9 @@
 
 #include <algorithm>
 #include <ranges>
+#include <stddef.h>
+#include <stdexcept>
+#include <utility>
 
 namespace nbodysim::simulation {
 

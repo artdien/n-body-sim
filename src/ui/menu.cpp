@@ -1,11 +1,15 @@
 #include "ui/menu.hpp"
 
 #include <array>
+#include <concepts>
+#include <utility>
 
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
+#include "platform/types.hpp"
+#include "rendering/renderer.hpp"
 #include "simulation/configuration.hpp"
 
 namespace nbodysim::ui {

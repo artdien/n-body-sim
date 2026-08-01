@@ -1,7 +1,9 @@
 #include "simulation/configuration.hpp"
 
+#include <cmath>
 #include <numbers>
 #include <random>
+#include <tuple>
 
 #include <glm/geometric.hpp>
 

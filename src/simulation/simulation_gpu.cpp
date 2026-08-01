@@ -1,11 +1,10 @@
 #include "simulation/simulation.hpp"
 
+#include <algorithm>
 #include <format>
+#include <string>
 #include <string_view>
 
-#include <glm/geometric.hpp>
-
-#include "platform/types.hpp"
 #include "utils/gl.hpp"
 #include "utils/string.hpp"
 

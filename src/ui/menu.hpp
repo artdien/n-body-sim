@@ -2,11 +2,21 @@
 
 #include <memory>
 
-#include <glm/vec3.hpp>
-
-#include "rendering/renderer.hpp"
-#include "simulation/configuration.hpp"
 #include "simulation/simulation.hpp"
+
+// Forwards declarations
+namespace nbodysim::simulation {
+
+struct SimulationConfiguration;
+
+} // namespace nbodysim::simulation
+
+// Forwards declarations
+namespace nbodysim::rendering {
+
+struct RenderingSettings;
+
+}
 
 namespace nbodysim::ui {
 

@@ -1,8 +1,6 @@
-#include <memory>
+#include <algorithm>
+#include <format>
 #include <string_view>
-
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
 
 #include "platform/input.hpp"
 #include "platform/window.hpp"
@@ -62,7 +60,7 @@ auto main(int argc, char* argv[]) -> int {
 
   auto lag {0.0};
 
-  window.open([&](const MouseInput& mouse, const KeyboardInput& keyboard, double elapsed_time) {
+  window.open([&](const MouseInput& mouse, const KeyboardInput& keyboard, f64 elapsed_time) {
     window.set_title(std::format("{} ({:.2f}ms)", WINDOW_TITLE, elapsed_time));
     process_input(&menu, &window, &settings, mouse, keyboard);
 

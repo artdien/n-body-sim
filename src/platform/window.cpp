@@ -1,10 +1,12 @@
 #include "platform/window.hpp"
 
 #include <chrono>
+#include <optional>
 #include <print>
 #include <stdexcept>
 
 #include <glad/glad.h>
+#include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
@@ -48,7 +50,7 @@ auto determine_mouse_position(GLFWwindow* window, u32 width, u32 height, const g
   return last_mouse_position;
 }
 
-auto scroll_callback([[maybe_unused]] GLFWwindow* window, [[maybe_unused]] double offset_x, double offset_y) -> void {
+auto scroll_callback([[maybe_unused]] GLFWwindow* window, [[maybe_unused]] f64 offset_x, f64 offset_y) -> void {
   if (offset_y > 0) {
     add_mouse_input_event({.scroll_direction = ScrollDirection::UP});
   }
@@ -86,7 +88,7 @@ Window::Window(u32 width, u32 height, const std::string& title) : title_ {title}
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
   }
 
-  window_ = glfwCreateWindow(static_cast<i32>(width_), static_cast<i32>(height_), title_.c_str(), NULL, NULL);
+  window_ = glfwCreateWindow(static_cast<i32>(width_), static_cast<i32>(height_), title_.c_str(), nullptr, nullptr);
   if (!window_) {
     glfwTerminate();
     throw std::runtime_error("Failed to create window");
@@ -121,7 +123,7 @@ Window::~Window() {
   glfwTerminate();
 }
 
-auto Window::open(std::function<void(const MouseInput&, const KeyboardInput&, double)> execute_per_frame) -> void {
+auto Window::open(std::function<void(const MouseInput&, const KeyboardInput&, f64)> execute_per_frame) -> void {
   auto previous_time {std::chrono::steady_clock::now()};
   auto mouse_position {glm::vec2 {0.0f}};
 

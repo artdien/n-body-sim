@@ -6,9 +6,6 @@
 
 #include <glm/geometric.hpp>
 
-#include "platform/types.hpp"
-#include "simulation/octree.hpp"
-
 namespace nbodysim::simulation {
 
 namespace {
