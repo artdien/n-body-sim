@@ -135,12 +135,12 @@ auto Window::open(std::function<void(const MouseInput&, const KeyboardInput&, f6
     mouse_position = determine_mouse_position(window_, width_, height_, mouse_position);
 
     auto mouse_input {get_mouse_input_event()};
-    if (mouse_input.has_value() && ImGui::GetIO().WantCaptureMouse) {
+    if (ImGui::GetIO().WantCaptureMouse) {
       mouse_input.reset();
     }
 
     auto keyboard_input {get_keyboard_input_event()};
-    if (keyboard_input.has_value() && ImGui::GetIO().WantCaptureKeyboard) {
+    if (ImGui::GetIO().WantCaptureKeyboard) {
       keyboard_input.reset();
     }
 
