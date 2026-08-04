@@ -58,7 +58,7 @@ The default build settings use Clang as the C++ compiler and Ninja as the build 
    ./build/src/n-body-sim -width 1920 -height 1080
    ```
 
-### Usage
+## Usage
 
 Launching the application opens a window and immediately starts a CPU-based simulation. The initial window size can be specified via command-line arguments as shown above.
 
@@ -95,7 +95,7 @@ The menu settings are:
     - **Tile Size**: The size of tiles processed by each work group.
 - Button **Create New Simulation** to apply the current simulation parameters and start a new simulation.
 
-### Dependencies
+## Dependencies
 
 This project uses the following dependencies, managed via vcpkg:
 
