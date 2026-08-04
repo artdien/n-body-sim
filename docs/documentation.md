@@ -18,11 +18,11 @@ To state the n-body problem concisely, we first define our notation:
 - Vectors or vector-valued functions are denoted in **boldface**.
 - Quantities (e.g. positions) of body $i$ are denoted with a subscript $i$, where $i = 1, \dots, n$.
 - Time is measured in seconds $[\text{s}]$ and is denoted by $t \in \mathbb{R}\_{\ge 0}$.
-- The position of body $i$ is measured in meters $[\text{m}]$ and is denoted by:
+- The position of body $i$ is measured in meters $[\text{m}]$ and is denoted by:\
   $$\mathbf{x}\_i \colon \mathbb{R}\_{\geq 0} \to \mathbb{R}^3, \quad t \mapsto \mathbf{x}\_i(t)$$
-- The velocity of body $i$ is measured in meters per second $[\frac{\text{m}}{\text{s}}]$ and is denoted by:
+- The velocity of body $i$ is measured in meters per second $[\frac{\text{m}}{\text{s}}]$ and is denoted by:\
   $$\mathbf{v}\_i \colon \mathbb{R}\_{\geq 0} \to \mathbb{R}^3, \quad t \mapsto \mathbf{v}\_i(t)$$
-- The acceleration of body $i$ is measured in meters per second squared $[\frac{\text{m}}{\text{s}^2}]$ and is denoted by:
+- The acceleration of body $i$ is measured in meters per second squared $[\frac{\text{m}}{\text{s}^2}]$ and is denoted by:\
   $$\mathbf{a}\_i \colon \mathbb{R}\_{\geq 0} \to \mathbb{R}^3, \quad t \mapsto \mathbf{a}\_i(t)$$
 - The mass of body $i$ is measured in kilograms $[\text{kg}]$ and is denoted by $m\_i \in \mathbb{R}\_{>0}$.
 - The gravitational constant $6.6743 \cdot 10^{-11} \frac{\text{m}^3}{\text{kg} \text{s}^2}$ is denoted by $G$.
@@ -57,8 +57,8 @@ With the total gravitational force defined, we can formulate the n-body problem 
 
 $$
 \begin{aligned}
-  \frac{\mathrm{d} \mathbf{x}\_i(t)}{\mathrm{d}t} &= \mathbf{v}\_i(t) \\
-  \frac{\mathrm{d} \mathbf{v}\_i(t)}{\mathrm{d}t} &= \mathbf{a}\_i(t)
+  \frac{\mathrm{d} \mathbf{x}\_i(t)}{\mathrm{d}t} \&= \mathbf{v}\_i(t) \\
+  \frac{\mathrm{d} \mathbf{v}\_i(t)}{\mathrm{d}t} \&= \mathbf{a}\_i(t)
 \end{aligned}
 \quad \text{for} \quad i = 1, \dots, n
 $$
@@ -69,13 +69,13 @@ Using Newton's second law $\mathbf{F}\_{i}(t) = m\_i \mathbf{a}\_i(t)$ with init
 
 $$
 \begin{aligned}
-  \frac{\mathrm{d} \mathbf{x}\_i(t)}{\mathrm{d}t} &= \mathbf{v}\_i(t) \\
-  \frac{\mathrm{d} \mathbf{v}\_i(t)}{\mathrm{d}t} &= \frac{\mathbf{F}\_i(t)}{m\_i}
+  \frac{\mathrm{d} \mathbf{x}\_i(t)}{\mathrm{d}t} \&= \mathbf{v}\_i(t) \\
+  \frac{\mathrm{d} \mathbf{v}\_i(t)}{\mathrm{d}t} \&= \frac{\mathbf{F}\_i(t)}{m\_i}
 \end{aligned}
 \quad \text{with} \quad
 \begin{aligned}
-  \mathbf{x}\_i(0) &= \mathbf{x}\_{i,0} \\
-  \mathbf{v}\_i(0) &= \mathbf{v}\_{i,0}
+  \mathbf{x}\_i(0) \&= \mathbf{x}\_{i,0} \\
+  \mathbf{v}\_i(0) \&= \mathbf{v}\_{i,0}
 \end{aligned}
 \quad \text{for} \quad i = 1, \dots, n
 $$
@@ -104,8 +104,8 @@ It is often useful to set the position and velocity of the center of mass (COM) 
 
 $$
 \begin{aligned}
-  \mathbf{x}\_{\text{com}}(t) &= \frac{1}{M} \sum\_{i=1}^n m\_i \mathbf{x}\_i(t) \\
-  \mathbf{v}\_{\text{com}}(t) &= \frac{1}{M} \sum\_{i=1}^n m\_i \mathbf{v}\_i(t)
+  \mathbf{x}\_{\text{com}}(t) \&= \frac{1}{M} \sum\_{i=1}^n m\_i \mathbf{x}\_i(t) \\
+  \mathbf{v}\_{\text{com}}(t) \&= \frac{1}{M} \sum\_{i=1}^n m\_i \mathbf{v}\_i(t)
 \end{aligned}
 \quad \text{with} \quad M = \sum\_{i=1}^n m\_i
 $$
@@ -114,8 +114,8 @@ We then subtract these values from the positions and velocities of all bodies:
 
 $$
 \begin{aligned}
-  \mathbf{x}'\_i(t) &= \mathbf{x}\_i(t) - \mathbf{x}\_{\text{com}}(t) \\
-  \mathbf{v}'\_i(t) &= \mathbf{v}\_i(t) - \mathbf{v}\_{\text{com}}(t)
+  \mathbf{x}'\_i(t) \&= \mathbf{x}\_i(t) - \mathbf{x}\_{\text{com}}(t) \\
+  \mathbf{v}'\_i(t) \&= \mathbf{v}\_i(t) - \mathbf{v}\_{\text{com}}(t)
 \end{aligned}
 \quad \text{for} \quad i = 1, \dots, n
 $$
@@ -136,12 +136,12 @@ Using forward finite differences for the differential operators, the ODEs can be
 
 $$
 \begin{aligned}
-  \frac{\mathbf{x}\_i(t\_{j+1}) - \mathbf{x}\_i(t\_j)}{\Delta t} + \mathcal{O}(\Delta t) &= \mathbf{v}\_i(t\_j)
-  \quad &\Rightarrow \quad
-  \mathbf{x}\_i(t\_{j+1}) &= \mathbf{x}\_i(t\_j) + \mathbf{v}\_i(t\_j) \Delta t  + \mathcal{O}(\Delta t) \\
-  \frac{\mathbf{v}\_i(t\_{j+1}) - \mathbf{v}\_i(t\_j)}{\Delta t} + \mathcal{O}(\Delta t) &= \frac{\mathbf{F}\_i(t\_j)}{m\_i}
-  \quad &\Rightarrow \quad
-  \mathbf{v}\_i(t\_{j+1}) &= \mathbf{v}\_i(t\_j) + \frac{\mathbf{F}\_i(t\_j)}{m\_i} \Delta t + \mathcal{O}(\Delta t)
+  \frac{\mathbf{x}\_i(t\_{j+1}) - \mathbf{x}\_i(t\_j)}{\Delta t} + \mathcal{O}(\Delta t) \&= \mathbf{v}\_i(t\_j)
+  \quad \&\Rightarrow \quad
+  \mathbf{x}\_i(t\_{j+1}) \&= \mathbf{x}\_i(t\_j) + \mathbf{v}\_i(t\_j) \Delta t  + \mathcal{O}(\Delta t) \\
+  \frac{\mathbf{v}\_i(t\_{j+1}) - \mathbf{v}\_i(t\_j)}{\Delta t} + \mathcal{O}(\Delta t) \&= \frac{\mathbf{F}\_i(t\_j)}{m\_i}
+  \quad \&\Rightarrow \quad
+  \mathbf{v}\_i(t\_{j+1}) \&= \mathbf{v}\_i(t\_j) + \frac{\mathbf{F}\_i(t\_j)}{m\_i} \Delta t + \mathcal{O}(\Delta t)
 \end{aligned}
 \quad \text{for} \quad j = 0, 1, 2, \dots
 $$
@@ -216,8 +216,8 @@ $$
 \quad \text{with} \quad
 j\_k =
 \begin{cases}
-  j\_1 = 2, j\_2 = 3 &\text{for } &i = 1 \\
-  j\_1 = 1, j\_2 = 3 &\text{for } &i = 2
+  j\_1 = 2, j\_2 = 3 \&\text{for } \&i = 1 \\
+  j\_1 = 1, j\_2 = 3 \&\text{for } \&i = 2
 \end{cases}
 \quad \text{for} \quad i \in \{1, 2\}
 $$
@@ -226,8 +226,8 @@ To simplify this equation, we first calculate the distance vectors:
 
 $$
 \begin{aligned}
-  \mathbf{x}\_{j\_1}(0) - \mathbf{x}\_i(0) &= -2\mathbf{x}\_i(0) \\
-  \mathbf{x}\_{j\_2}(0) - \mathbf{x}\_i(0) &= -\mathbf{x}\_i(0)
+  \mathbf{x}\_{j\_1}(0) - \mathbf{x}\_i(0) \&= -2\mathbf{x}\_i(0) \\
+  \mathbf{x}\_{j\_2}(0) - \mathbf{x}\_i(0) \&= -\mathbf{x}\_i(0)
 \end{aligned}
 \quad \text{for} \quad i \in \{1, 2\}
 $$
@@ -256,9 +256,9 @@ The first body is placed at position $\mathbf{x}\_1(0) = (0, r, 0)$, where $r \i
 $$
 R(\varphi) =
 \begin{pmatrix}
-  \cos(\varphi) & -\sin(\varphi) & 0 \\
-  \sin(\varphi) &  \cos(\varphi) & 0 \\
-  0 & 0 & 1
+  \cos(\varphi) \& -\sin(\varphi) \& 0 \\
+  \sin(\varphi) \&  \cos(\varphi) \& 0 \\
+  0 \& 0 \& 1
 \end{pmatrix}
 $$
 
@@ -277,8 +277,8 @@ Calculating the relative positions to the first body:
 
 $$
 \begin{aligned}
-  \mathbf{x}\_2(0) - \mathbf{x}\_1(0) &= \left(-\frac{\sqrt{3}}{2}r, -\frac{3}{2}r, 0 \right) \\
-  \mathbf{x}\_3(0) - \mathbf{x}\_1(0) &= \left( \frac{\sqrt{3}}{2}r, -\frac{3}{2}r, 0 \right)
+  \mathbf{x}\_2(0) - \mathbf{x}\_1(0) \&= \left(-\frac{\sqrt{3}}{2}r, -\frac{3}{2}r, 0 \right) \\
+  \mathbf{x}\_3(0) - \mathbf{x}\_1(0) \&= \left( \frac{\sqrt{3}}{2}r, -\frac{3}{2}r, 0 \right)
 \end{aligned}
 \quad \text{with} \quad
 \Vert \mathbf{x}\_2(0) - \mathbf{x}\_1(0) \Vert
@@ -350,8 +350,8 @@ To sample the velocity, we use the energy distribution function of the Plummer m
 $$
 f\colon \mathbb{R} \rightarrow \mathbb{R}, \quad E \mapsto f(E) =
 \begin{cases}
-  \frac{24\sqrt{2}}{7\pi^3} \frac{a^2}{G^5 M^4}(-E^\frac{7}{2}) & \text{for } E<0 \\
-  0 & \text{for } E \geq 0
+  \frac{24\sqrt{2}}{7\pi^3} \frac{a^2}{G^5 M^4}(-E^\frac{7}{2}) \& \text{for } E<0 \\
+  0 \& \text{for } E \geq 0
 \end{cases}
 $$
 
